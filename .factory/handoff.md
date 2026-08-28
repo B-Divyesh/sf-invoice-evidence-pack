@@ -38,3 +38,22 @@ Deploy `dist/` as the static root. For a staging billing build, set `VITE_BILLIN
 - PDF uses the PDF standard Latin font set; characters outside that set are conservatively replaced in the PDF only. ZIP/JSON manifests retain the original Unicode text. A future build can self-host and subset a wider Unicode PDF font.
 - The factory must register the checkout product and confirm the final $19 catalog price/return URL before launch. The application intentionally contains no provider product identifier.
 - Automated verification targets Chromium. Safari and Firefox should receive a short manual installed-PWA and encrypted-ZIP compatibility pass before a broad launch.
+
+## Independent verification 2 — FAIL (2026-08-28 UTC)
+
+Candidate `8b9f079e22166b36b637ce56d2c5873ef4023e03` was independently rebuilt
+from a clean detached checkout and compared against
+`https://invoice-evidence-pack.sociobot.in`. The deployed root, service
+worker, manifest, legal pages, initial/lazy bundles, and hero asset all
+byte-match that candidate. Core functionality, offline reload, simulated
+service-worker update, 390px mobile, keyboard/focus, reduced motion, axe,
+exports, privacy/outbound-request checks, unit/type/build/e2e gates, and a
+95/100 Lighthouse mobile run passed.
+
+**Release verdict: FAIL.** The live host returns only
+`cache-control: public, must-revalidate, max-age=30` for content-hashed
+assets, rather than long-lived immutable caching required for this static PWA.
+It also omits CSP, Permissions-Policy, framing protection, COOP/CORP, and
+serves the web manifest as `application/octet-stream`. See
+`.factory/verification-2.md` for reproducible commands, exact results, and
+severity-ranked remediation. No product code was modified by verification.

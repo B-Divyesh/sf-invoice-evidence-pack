@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Invoice Packet folio leaf mark">
+  <rect width="64" height="64" rx="13" fill="#183129"/>
+  <path d="M16 14.5h25a7 7 0 0 1 7 7v28H23a7 7 0 0 1-7-7v-28Z" fill="#f4f0e6"/>
+  <path d="M23 21h18M23 27h12" fill="none" stroke="#285b45" stroke-width="3" stroke-linecap="round"/>
+  <path d="M26 47c4-10 10-14 19-14-1 9-7 15-19 14Z" fill="#39765a"/>
+  <path d="m28 45 12-9" stroke="#f4f0e6" stroke-width="2" stroke-linecap="round"/>
+</svg>

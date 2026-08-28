@@ -1,0 +1,8 @@
+{
+  "generator": "/opt/fleet/lib/gen-image.sh",
+  "deployment": "factory-image",
+  "date": "2026-08-28",
+  "size": "1536x1024",
+  "quality": "high",
+  "prompt": "Use case: stylized-concept. Asset type: PWA landing-page hero. An editorial botanical field-guide still life visualizing the assembly of evidence around one invoice. Top-down open cream archival folio on a warm paper desk, one blank invoice-like sheet held by a brass paper clip, small completely blank evidence tags and translucent file sleeves arranged with a pressed fern, eucalyptus sprig, seed pods, and a magnifying glass. Refined gouache and colored-pencil natural-history illustration with crisp cut-paper edges and subtle paper grain, contemporary rather than vintage. Landscape composition, main folio on the right, breathing room and a few loose leaves on the left for responsive cropping. Diffuse northern-window daylight, calm and trustworthy. Warm paper, deep archival green, moss, lichen, restrained ochre and berry. No readable text, no letters, no numbers, no logos, no watermark, no currency symbols, no people, no hands, no screens, no photorealism, no gradient, no clutter, no distorted objects, no ominous tax imagery."
+}

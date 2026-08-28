@@ -1,0 +1,9 @@
+{
+  "slug": "invoice-evidence-pack",
+  "title": "Invoice Packet",
+  "artifact_class": "pwa-offline",
+  "user": "Cross-border freelancers and tiny firms who assemble invoice, work proof, payment proof, and accountant notes for a filing or client review.",
+  "smallest_useful_product": "Offline pack builder with configurable checklist templates, file hashes, missing-item flags, accountant notes, and ZIP/PDF manifest export.",
+  "monetization": "one-time",
+  "constraints": "Jurisdiction-configurable, not tax advice, local files, encrypted export, filename redaction."
+}

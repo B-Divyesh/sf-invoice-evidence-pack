@@ -96,6 +96,50 @@ test('works at 390px without horizontal page overflow', async ({ page }, testInf
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
+test('keeps evidence controls focused, touch-sized, and rejects whitespace-only names', async ({ page }) => {
+  await page.goto('/');
+
+  await page.getByRole('button', { name: 'Start your first packet' }).click();
+  const packetName = page.getByLabel('Packet name Required');
+  await packetName.fill('   ');
+  await page.getByRole('button', { name: 'Create packet' }).click();
+  await expect(page.getByText('Enter a packet name that contains at least one non-space character.')).toBeVisible();
+  await expect(packetName).toBeFocused();
+  await expect(packetName).toHaveAttribute('aria-invalid', 'true');
+
+  await packetName.fill('Focus regression packet');
+  await page.getByRole('button', { name: 'Create packet' }).click();
+  await expect(page.getByRole('heading', { name: 'Focus regression packet' })).toBeVisible();
+
+  const addItem = page.getByRole('button', { name: 'Add checklist item' });
+  await addItem.click();
+  const itemName = page.getByLabel('Item name Required');
+  await itemName.fill('   ');
+  await page.getByRole('button', { name: 'Add item' }).click();
+  await expect(page.getByText('Enter an item name that contains at least one non-space character.')).toBeVisible();
+  await expect(itemName).toBeFocused();
+  await expect(itemName).toHaveAttribute('aria-invalid', 'true');
+  await page.getByRole('button', { name: 'Close dialog' }).click();
+
+  await addItem.focus();
+  await page.keyboard.press('Tab');
+  const firstFile = page.locator('input[type="file"][data-item]').first();
+  await expect(firstFile).toBeFocused();
+  const addEvidence = firstFile.locator('xpath=..');
+  await expect(addEvidence).toHaveCSS('outline-width', '3px');
+
+  await firstFile.setInputFiles({ name: 'focus-proof.txt', mimeType: 'text/plain', buffer: Buffer.from('focus proof') });
+  const replaceInput = page.locator('input[type="file"][data-item]').first();
+  await replaceInput.focus();
+  await expect(replaceInput.locator('xpath=..')).toHaveCSS('outline-width', '3px');
+
+  for (const control of await page.locator('.file-slip .mini-button, .packet-top .icon-button.danger').all()) {
+    const size = await control.evaluate((element) => ({ width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height }));
+    expect(size.width).toBeGreaterThanOrEqual(44);
+    expect(size.height).toBeGreaterThanOrEqual(44);
+  }
+});
+
 test('serves the app from its service worker while offline', async ({ page, context }) => {
   await page.goto('/');
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });

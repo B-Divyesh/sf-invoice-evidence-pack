@@ -65,7 +65,7 @@ h3 { line-height: 1.3; }
 .network span { width: 8px; height: 8px; border-radius: 50%; background: var(--fern); box-shadow: 0 0 0 3px color-mix(in srgb, var(--fern) 18%, transparent); }
 .network.offline span { background: var(--ochre); }
 .icon { width: 20px; height: 20px; flex: none; }
-.icon-button { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: transparent; border-radius: 7px; cursor: pointer; }
+.icon-button { width: 44px; height: 44px; flex: 0 0 44px; display: grid; place-items: center; border: 0; background: transparent; border-radius: 7px; cursor: pointer; }
 .icon-button:hover { background: var(--lichen); }
 .icon-button.bordered { border: 1px solid var(--line); background: var(--sheet); }
 .icon-button.danger { color: var(--berry); }
@@ -163,13 +163,14 @@ input:hover, select:hover, textarea:hover { border-color: var(--fern); }
 .collect-slot > span { color: var(--muted); font-size: 12px; }
 .collect-slot label, .mini-button { position: relative; overflow: hidden; }
 input[type="file"] { position: absolute; width: 1px; height: 1px; min-height: 0; opacity: 0; inset: auto; }
+.collect-slot label:focus-within, .mini-button:focus-within { outline: 3px solid var(--ochre); outline-offset: 3px; box-shadow: 0 0 0 5px color-mix(in srgb, var(--ochre) 24%, transparent); }
 .file-slip { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 12px; margin-top: 17px; padding: 12px 14px; background: var(--lichen); }
 .file-slip div { min-width: 0; }
 .file-slip strong, .file-slip span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file-slip strong { font-size: 14px; }
 .file-slip span { color: var(--muted); font-size: 12px; }
 code { font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; }
-.mini-button { min-height: 38px; display: inline-grid; place-items: center; border: 1px solid var(--line); border-radius: 3px; padding: 6px 10px; background: var(--sheet); color: var(--moss); cursor: pointer; font-size: 12px; font-weight: 800; }
+.mini-button { min-width: 44px; min-height: 44px; flex: 0 0 auto; display: inline-grid; place-items: center; border: 1px solid var(--line); border-radius: 3px; padding: 6px 10px; background: var(--sheet); color: var(--moss); cursor: pointer; font-size: 12px; font-weight: 800; }
 .mini-button.danger { color: var(--berry); }
 .item-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 7px; }
 .inline-empty { padding: 36px; border: 1px dashed var(--line); text-align: center; }

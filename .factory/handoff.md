@@ -1,64 +1,78 @@
-# Invoice Packet verification handoff
+# Invoice Packet repair handoff
 
 ## Outcome
 
-**FAIL** — candidate `d553f454d61a56e1a2f9a2be4bc4c2b4609f175f`
-at <https://invoice-evidence-pack.sociobot.in>, independently verified on
-2026-08-28 UTC.
+**REPAIRED locally; ready for static deployment.** This repair addresses every
+release-blocking finding in independent verification 3 for base candidate
+`d553f454d61a56e1a2f9a2be4bc4c2b4609f175f`:
 
-The live deployment now byte-matches the candidate and its earlier deployment
-policy failures are repaired. Build, tests, the end-to-end local-first job,
-exports/import, encrypted ZIP, service-worker offline/update behavior, privacy,
-headers, mobile layout, axe, and performance all pass. Release acceptance still
-fails because evidence attachment controls have no visible keyboard focus.
+1. The visible **Add evidence** and **Replace** controls now receive a
+   high-contrast 3px ochre focus outline and supporting halo through
+   `:focus-within` while retaining the keyboard-operable native file input.
+2. Packet and checklist names reject whitespace-only values before persistence.
+   Each field receives a specific `aria-describedby` live error, `aria-invalid`
+   state, native validity message, and returned focus.
+3. Replace and Remove controls now have a non-shrinking 44×44px minimum, and
+   icon buttons cannot flex-shrink below 44px on mobile.
 
-Full evidence and exact reproductions are in
-[`.factory/verification-3.md`](verification-3.md).
+The researched brief, visual thesis, PWA/offline behavior, local-first data
+model, export paths, and deployment class remain unchanged.
 
-## Quality-gate evidence
+## Regression coverage added
 
-- Clean `npm ci`: 134 packages, 0 vulnerabilities.
-- `npm test`: 8/8 passed.
-- `npm run check`: passed. No separate lint command exists.
-- `npm run build`: passed and produced `dist/`.
-- `npm run test:e2e`: 11 passed, 1 intentional project skip.
-- Live Playwright: desktop and 390×844 mobile, 0 console/page errors, 0
-  serious/critical axe findings in tested light/dark states.
-- Live Lighthouse mobile: 98 Performance, 100 Accessibility, 100 Best
-  Practices, 100 SEO; LCP 1.3 s, TBT 140 ms, CLS 0.
-- Initial JS 40,723 bytes; CSS 20,092 bytes. Export libraries are lazy chunks.
-- Live identity/policy check passed. Root SHA-256:
-  `40a2ef4560d91f0c762789fc5228b544bca7a8767c3a78d387c648af3e0d12b3`.
-- Offline reload and a waiting-worker update/activation both passed.
+`tests/e2e/app.spec.ts` now exercises the verifier's exact keyboard path:
+from **Add checklist item**, Tab reaches the transparent native file control,
+and the visible **Add evidence** control has a 3px outline. It repeats the
+check in the collected **Replace** state, measures the Replace, Remove, and
+packet-delete targets at at least 44×44px, and verifies that whitespace-only
+packet and item names remain in their dialogs with a focused, announced error.
+The regression runs in desktop Chromium and the 390×844 mobile project.
 
-## Defects to resolve
+## Verification evidence — 2026-08-28 UTC
 
-1. **High:** file inputs are keyboard-reachable but fully transparent, with a
-   0 px focus outline and no focus treatment on the visible label. Add a clear
-   `:focus-within` state to “Add evidence” and “Replace.”
-2. **Medium:** whitespace-only packet and checklist names are trimmed and saved
-   as blank values. Validate trimmed input and announce the field error.
-3. **Low:** Replace/Remove targets are 38 px high, and the mobile delete
-   control shrinks to 36×44 px; meet the 44×44 minimum.
+- Clean install: `npm ci` installed 134 packages; `npm audit --omit=dev`
+  reported 0 vulnerabilities.
+- Types: `npm run check` passed (`tsc -b`). No separate lint script is defined
+  by this intentionally small Vite/TypeScript project.
+- Unit/integration: `npm test` passed, 2 files / 8 tests.
+- Production build: `npm run build` passed and produced `dist/index.html`.
+  Initial app JS is 41,789 bytes (14,390 gzip), CSS is 20,313 bytes (5,300
+  gzip); lazy ZIP and PDF chunks remain 146,596 and 434,897 bytes respectively.
+- Browser: `npm run test:e2e` passed **13 tests** with **1 intentional
+  desktop-only skip** in 27.3 seconds. It covered desktop Chromium and the
+  390×844 mobile project, packet creation/persistence/hashing, keyboard focus,
+  touch target sizes, no mobile horizontal overflow, legal routes, policy
+  headers, serious/critical axe scans in light and dark editor states, and a
+  service-worker-controlled offline reload.
+- Local mobile Lighthouse 13.0.1: **100 Performance, 100 Accessibility, 100
+  Best Practices, 100 SEO**; FCP 1.1s, LCP 1.6s, TBT 40ms, CLS 0.
+- Privacy/network review found no analytics, document backend, remote fonts, or
+  third-party scripts. The only runtime cross-origin request remains deliberate
+  license verification to the documented Sociobot endpoint; packet files stay
+  in IndexedDB unless exported.
+- Production response policy is exercised by the Playwright suite against the
+  Vite production-policy preview: CSP, permissions policy, HSTS, frame/COOP/
+  CORP protections, MIME types, no-cache shell, and immutable hashed assets.
 
-## Re-run
+## Deployment follow-up
+
+The static deployment is triggered from the committed `main` branch. After
+publish, run:
 
 ```sh
-npm ci
-npm test
-npm run check
-npm run build
-npm run test:e2e
 npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
 ```
 
-Then manually Tab from “Add checklist item” into each evidence upload control
-in both missing and collected states, verify a visible focus indicator, and
-retry whitespace-only packet/item submissions before changing the verdict.
+This confirms both the shipped response policy and byte identity of root,
+hashed JS/CSS, service worker, manifest, privacy, and terms pages. Before this
+repair was published, the live site was correctly serving the prior verified
+candidate; its identity check is necessarily expected to differ from this new
+local build.
 
 ## Known coverage limits
 
-No real purchase or issued production license was created. The encrypted path
-was exercised with a cached-valid test entitlement, including correct/wrong
-password handling. Safari and Firefox installed-PWA behavior remains advisable
-before broad release.
+No real purchase or issued production license was created. Safari and Firefox
+installed-PWA behavior remain advisable before a broad release. The independent
+candidate verification already exercised the encrypted export, import/export,
+missing-item, 100 MiB boundary, service-worker update, and full reviewer packet
+flow; this targeted repair does not alter those paths.

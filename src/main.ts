@@ -78,7 +78,8 @@ function templateOptions(): string {
 function dialogs(): string {
   return `<dialog id="new-packet-dialog" aria-labelledby="new-packet-title"><form method="dialog" id="new-packet-form">
     <div class="dialog-head"><div><p class="eyebrow">New specimen</p><h2 id="new-packet-title">Start an evidence packet</h2></div><button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button></div>
-    <label>Packet name <span>Required</span><input name="title" required maxlength="100" placeholder="Acme · INV-042" autocomplete="off"></label>
+    <label>Packet name <span>Required</span><input name="title" required maxlength="100" placeholder="Acme · INV-042" autocomplete="off" aria-describedby="packet-name-error"></label>
+    <p class="form-error" id="packet-name-error" aria-live="polite"></p>
     <div class="form-pair"><label>Invoice number<input name="invoiceNumber" maxlength="80" autocomplete="off"></label><label>Invoice date<input name="invoiceDate" type="date"></label></div>
     <label>Client or counterparty<input name="client" maxlength="100" autocomplete="organization"></label>
     <div class="form-pair"><label>Jurisdiction or review context<input name="jurisdiction" maxlength="100" placeholder="India · GST review"></label><label>Currency<input name="currency" maxlength="12" placeholder="USD"></label></div>
@@ -88,7 +89,8 @@ function dialogs(): string {
   </form></dialog>
   <dialog id="add-item-dialog" aria-labelledby="add-item-title"><form method="dialog" id="add-item-form">
     <div class="dialog-head"><div><p class="eyebrow">Checklist</p><h2 id="add-item-title">Add evidence item</h2></div><button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button></div>
-    <label>Item name <span>Required</span><input name="label" required maxlength="100"></label>
+    <label>Item name <span>Required</span><input name="label" required maxlength="100" aria-describedby="item-name-error"></label>
+    <p class="form-error" id="item-name-error" aria-live="polite"></p>
     <label>What should this prove?<textarea name="description" rows="3" maxlength="240"></textarea></label>
     <label class="check-label"><input name="required" type="checkbox" checked> Required for this packet</label>
     <div class="dialog-actions"><button class="button secondary" type="button" data-close-dialog>Cancel</button><button class="button primary" type="submit">Add item</button></div>
@@ -313,9 +315,31 @@ function bindGlobalEvents(): void {
   bindForms();
 }
 
+function validateTrimmedRequired(input: HTMLInputElement, error: HTMLElement | null, message: string): boolean {
+  const valid = input.value.trim().length > 0;
+  input.setCustomValidity(valid ? '' : message);
+  if (valid) input.removeAttribute('aria-invalid');
+  else input.setAttribute('aria-invalid', 'true');
+  if (error) error.textContent = valid ? '' : message;
+  if (!valid) {
+    input.focus();
+    input.reportValidity();
+  }
+  return valid;
+}
+
 function bindForms(): void {
+  document.querySelectorAll<HTMLInputElement>('#new-packet-form input[name="title"], #add-item-form input[name="label"]').forEach((input) => input.addEventListener('input', () => {
+    input.setCustomValidity('');
+    input.removeAttribute('aria-invalid');
+    const error = input.closest('form')?.querySelector<HTMLElement>(input.name === 'title' ? '#packet-name-error' : '#item-name-error');
+    if (error) error.textContent = '';
+  }));
   document.querySelector<HTMLFormElement>('#new-packet-form')?.addEventListener('submit', async (event) => {
-    event.preventDefault(); const form = event.currentTarget as HTMLFormElement; if (!form.reportValidity()) return;
+    event.preventDefault(); const form = event.currentTarget as HTMLFormElement;
+    const title = form.elements.namedItem('title') as HTMLInputElement;
+    const error = form.querySelector<HTMLElement>('#packet-name-error');
+    if (!validateTrimmedRequired(title, error, 'Enter a packet name that contains at least one non-space character.') || !form.reportValidity()) return;
     const data = new FormData(form); const template = allTemplates().find((row) => row.id === data.get('templateId')) ?? BUILT_IN_TEMPLATES[0]; const at = nowIso();
     const packet: Packet = {
       id: crypto.randomUUID(), title: String(data.get('title')).trim(), invoiceNumber: String(data.get('invoiceNumber')).trim(), client: String(data.get('client')).trim(), invoiceDate: String(data.get('invoiceDate')), jurisdiction: String(data.get('jurisdiction')).trim(), currency: String(data.get('currency')).trim().toUpperCase(), templateId: template.id, notes: '',
@@ -324,7 +348,11 @@ function bindForms(): void {
     await savePacket(packet); packets.unshift(packet); selectedId = packet.id; (form.closest('dialog') as HTMLDialogElement).close(); form.reset(); render(); announce('Packet created and saved locally.');
   });
   document.querySelector<HTMLFormElement>('#add-item-form')?.addEventListener('submit', async (event) => {
-    event.preventDefault(); const form = event.currentTarget as HTMLFormElement; if (!form.reportValidity()) return; const packet = currentPacket(); if (!packet) return; const data = new FormData(form);
+    event.preventDefault(); const form = event.currentTarget as HTMLFormElement;
+    const label = form.elements.namedItem('label') as HTMLInputElement;
+    const error = form.querySelector<HTMLElement>('#item-name-error');
+    if (!validateTrimmedRequired(label, error, 'Enter an item name that contains at least one non-space character.') || !form.reportValidity()) return;
+    const packet = currentPacket(); if (!packet) return; const data = new FormData(form);
     packet.items.push({ id: crypto.randomUUID(), label: String(data.get('label')).trim(), description: String(data.get('description')).trim(), required: data.get('required') === 'on' });
     await persist(packet, `Added checklist item: ${String(data.get('label')).trim()}`); (form.closest('dialog') as HTMLDialogElement).close(); form.reset(); render(); announce('Checklist item added.');
   });

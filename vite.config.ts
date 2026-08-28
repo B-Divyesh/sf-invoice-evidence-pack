@@ -64,10 +64,11 @@ function offlineServiceWorker(): Plugin {
     name: 'offline-service-worker',
     async closeBundle() {
       const builtFiles = (await listFiles(resolve('dist')))
-        .filter((path) => !path.endsWith('.map') && path !== '/sw.js' && path !== '/staticwebapp.config.json');
+        .filter((path) => !path.endsWith('.map') && path !== '/sw.js' && path !== '/staticwebapp.config.json')
+        .sort();
       const files = ['/', '/privacy/', '/terms/', ...builtFiles];
       const version = createHash('sha256');
-      for (const path of builtFiles.sort()) {
+      for (const path of builtFiles) {
         version.update(path);
         version.update(await readFile(resolve('dist', path.slice(1))));
       }

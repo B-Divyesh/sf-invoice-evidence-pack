@@ -2,7 +2,7 @@
 
 ## Outcome
 
-**REPAIRED locally; ready for static deployment.** This repair addresses every
+**REPAIRED and deployed.** This repair addresses every
 release-blocking finding in independent verification 3 for base candidate
 `d553f454d61a56e1a2f9a2be4bc4c2b4609f175f`:
 
@@ -53,21 +53,32 @@ The regression runs in desktop Chromium and the 390×844 mobile project.
 - Production response policy is exercised by the Playwright suite against the
   Vite production-policy preview: CSP, permissions policy, HSTS, frame/COOP/
   CORP protections, MIME types, no-cache shell, and immutable hashed assets.
+- Fresh live Chromium smoke at <https://invoice-evidence-pack.sociobot.in>
+  passed on desktop and 390×844 mobile: zero serious/critical axe findings,
+  no console/page errors, no horizontal overflow, focused 3px Add evidence and
+  Replace controls, rejected whitespace-only packet names, all measured compact
+  controls at least 44px on both axes, and a service-worker-controlled offline
+  reload.
 
-## Deployment follow-up
+## Deployment evidence
 
-The static deployment is triggered from the committed `main` branch. After
-publish, run:
+Static deployment used the factory configuration for
+`invoice-evidence-pack` and `dist/`, reusing the existing East US 2 Static Web
+App (`delightful-pond-0d975200f.7.azurestaticapps.net`) and its ready custom
+domain. Upload deployment ID: `61b31d19-45eb-447d-8a71-873eb37c300f`.
+
+The live verification passed:
 
 ```sh
 npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
 ```
 
-This confirms both the shipped response policy and byte identity of root,
-hashed JS/CSS, service worker, manifest, privacy, and terms pages. Before this
-repair was published, the live site was correctly serving the prior verified
-candidate; its identity check is necessarily expected to differ from this new
-local build.
+It confirmed the shipped response policy and byte identity of root, hashed
+JS/CSS, service worker, manifest, privacy, and terms pages. Live SHA-256:
+
+- Root/privacy/terms: `2fe76db6dcd9cbf5cf3a4998da24f54ec4ac5d2ca7b979f10249e5a16e775fff`
+- Service worker: `861c0a2b9b7856d033a7a15af57cdf9ac72c2b4a618acbd9a4a9d5a6225f3017`
+- Manifest: `c75d077c3848d30735c7ea868fb123eca5acd219d6f17d020677ae70ef784ead`
 
 ## Known coverage limits
 

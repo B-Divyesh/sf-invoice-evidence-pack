@@ -1,59 +1,100 @@
-# Invoice Packet v1 handoff
+# Invoice Packet repair handoff
 
-## What shipped
+## Repair outcome
 
-- A complete offline-first packet workflow: create a packet, choose and customize a checklist, attach local files, compute SHA-256 fingerprints, identify missing required evidence, add accountant/reviewer notes, and retain a visible edit history.
-- IndexedDB persistence for packet records and file blobs, plus full JSON backup/import so users own and can move their data.
-- Plain ZIP export containing the evidence files, `manifest.json`, and verification instructions; filename redaction; and a real downloadable PDF manifest.
-- A $19 one-time paid unlock using the Sociobot license contract for standard AES-256 encrypted ZIPs and reusable custom templates. The core workflow, accessibility, hashing, backup, plain ZIP, and PDF stay free. No product ID or secret is embedded.
-- Installable PWA manifest, hand-authored icon, generated precache service worker, offline navigation, update prompt, light/dark themes, and reduced-motion handling.
-- Dedicated `/privacy/` and `/terms/` routes, MIT license, complete README, and original botanical field-guide visual system.
-- Original generated hero art, reviewed for text/brand artifacts and optimized to 36 KB mobile WebP / 124 KB large WebP. Prompt and provenance are recorded in `.factory/design.md` and `assets/src/`.
+Repaired every release-blocking finding in `.factory/verification-2.md` for
+candidate `8b9f079e22166b36b637ce56d2c5873ef4023e03` without changing the researched
+scope, local-first data model, paid-unlock contract, or botanical field-guide
+identity.
 
-## How it was verified
+- **Immutable caching:** Vite now emits every compiled JS/CSS entry and lazy
+  chunk beneath content-hashed `/_app/` URLs. Azure Static Web Apps serves that
+  namespace with `Cache-Control: public, max-age=31536000, immutable`; HTML,
+  `sw.js`, and the manifest use `no-cache` so updates are discovered promptly.
+- **Response hardening:** the shipped `staticwebapp.config.json` supplies a
+  self-only CSP (with only the billing verify origins and the local `blob:` ZIP
+  worker allowed), denies ambient browser permissions and framing, and sets
+  COOP, CORP, `nosniff`, referrer policy, and two-year preload-ready HSTS.
+- **Manifest MIME:** `.webmanifest` is explicitly served as
+  `application/manifest+json`.
+- **Offline/update correctness:** the service-worker cache name is derived from
+  built artifact contents, and deployment configuration is excluded from its
+  precache. The only inline style was replaced by a semantic `<progress>` so
+  the CSP needs neither `unsafe-inline` nor `unsafe-eval`; the product-specific
+  progress animation and reduced-motion override remain.
+- **Regression tooling:** unit tests lock the static policy, Playwright verifies
+  actual preview response headers on desktop and mobile, and
+  `npm run verify:deployment -- <origin>` checks live policy plus byte identity
+  against `dist/`.
 
-- `npm test`: 5 unit tests passed (completion logic, safe filenames, manifest flags/redaction, SHA-256, full backup round-trip).
-- `npm run build`: passed; writes `dist/index.html` and static `/privacy/` and `/terms/` fallbacks.
-- `npm run test:e2e`: 9 passed, 1 intentionally skipped duplicate (desktop + 390px mobile). Covers packet creation, file hashing, persistence after reload, ZIP download, axe serious/critical rules in light and dark treatments, mobile overflow, legal routes, and explicit offline reload with `context.setOffline(true)`.
-- `npm audit --omit=dev`: 0 vulnerabilities.
-- `/opt/fleet/lib/verify-url.sh`: HTTP 200, no page/console errors, title and `lang` present, exactly one `h1`, main landmark present, no missing image alt text, and no unlabeled buttons.
-- Lighthouse 12.8.2, mobile profile against the production build: Performance 100, Accessibility 100, Best Practices 100, SEO 100. FCP 0.9 s, LCP 1.5 s, TBT 0 ms, CLS 0.
-- Initial app JS: 40.8 KB uncompressed / 14.2 KB gzip. CSS: 19.9 KB / 5.2 KB gzip. PDF and ZIP libraries are lazy-loaded only when exporting.
-- Manual visual review completed at 1440px and 390px; keyboard-native controls, focus rings, dialog semantics, alt text, one `h1`, and responsive stacking are present.
+## Verification evidence
 
-## Run / deploy
+Run on 2026-08-28 UTC from a clean `npm ci` (134 packages, 0 vulnerabilities):
+
+- `npm test`: 2 files, 8 tests passed, including 3 exact deployment-policy
+  regressions.
+- `npm run check`: passed (`tsc -b`). No separate lint tool is configured;
+  TypeScript strict compilation is the repository's static check.
+- `npm run build`: passed; `dist/index.html` is at the static root.
+- `npm run test:e2e`: 11 passed, 1 intentional desktop duplicate skipped, using
+  Playwright 1.58.2 with one worker. It covers desktop and 390×844 mobile,
+  policy headers, manifest MIME, immutable assets, packet creation, local file
+  hashing/persistence, ZIP export under CSP, light/dark axe checks, mobile
+  overflow, legal pages, and an explicit offline reload.
+- Independent browser scripts: required-field recovery, 100 MiB + 1 rejection,
+  invalid-import recovery, keyboard focus retention with a 3px focus outline,
+  reduced motion (`0.00001s`), IndexedDB persistence, and offline reload passed.
+  No console/page errors or outbound requests occurred. Repeated desktop and
+  mobile axe runs in both themes had 0 serious/critical findings.
+- `/opt/fleet/lib/verify-url.sh`: HTTP 200; no browser errors; title and `lang`
+  present; exactly one `h1`; one `main`; no missing image alt or unlabeled
+  buttons.
+- Service-worker update simulation: the “A fresh field kit is ready” notice
+  appeared after a changed worker, and “Update now” activated it and reloaded.
+- Azure Static Web Apps CLI 2.0.10 loaded the shipped configuration and served
+  the exact expected cache, CSP, permissions, framing, COOP/CORP, HSTS, and MIME
+  headers. `npm run verify:deployment -- http://127.0.0.1:4280` passed policy
+  and byte-identity checks.
+- Lighthouse 13.4.1 mobile: Performance **98**, Accessibility **100**, Best
+  Practices **100**, SEO **100**; FCP 1.6 s, LCP 1.9 s, TBT 110 ms, CLS 0.
+- Initial app JS: 40,723 bytes / 14,076 gzip. CSS: 20,090 bytes / 5,279 gzip.
+  PDF and ZIP chunks remain lazy-loaded.
+- Final build SHA-256: `dist/index.html`
+  `40a2ef4560d91f0c762789fc5228b544bca7a8767c3a78d387c648af3e0d12b3`;
+  `dist/sw.js`
+  `62b302ff7f87e7864ba783b903847971cbfe4b339f6c6a68ff7ca54171483f47`;
+  manifest
+  `c75d077c3848d30735c7ea868fb123eca5acd219d6f17d020677ae70ef784ead`.
+
+Before rollout, the live origin still byte-matched the rejected candidate root
+(`b55d236095809d4aec487877548c40b37b022a75d087d0eeb402038e60b626dc`)
+and reproduced all three findings. The work-order runner deploys `dist/` after
+the repair commit; after edge propagation, run:
+
+```sh
+npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
+```
+
+## Run and deploy
 
 ```sh
 npm ci
 npm test
+npm run check
 npm run build
 npm run test:e2e
 ```
 
-Deploy `dist/` as the static root. For a staging billing build, set `VITE_BILLING_BASE_URL=https://pilot-api.sociobot.in/api/v1`; production uses the Sociobot production API by default.
+Deploy `dist/` as the static root using the work order. Production billing
+defaults to `https://api.sociobot.in/api/v1`; staging can set
+`VITE_BILLING_BASE_URL=https://pilot-api.sociobot.in/api/v1`.
 
-## Known limits and next steps
+## Known limits
 
-- Browser storage quotas vary by device; the UI caps each attachment at 100 MB and tells users to keep exported backups.
-- PDF uses the PDF standard Latin font set; characters outside that set are conservatively replaced in the PDF only. ZIP/JSON manifests retain the original Unicode text. A future build can self-host and subset a wider Unicode PDF font.
-- The factory must register the checkout product and confirm the final $19 catalog price/return URL before launch. The application intentionally contains no provider product identifier.
-- Automated verification targets Chromium. Safari and Firefox should receive a short manual installed-PWA and encrypted-ZIP compatibility pass before a broad launch.
-
-## Independent verification 2 — FAIL (2026-08-28 UTC)
-
-Candidate `8b9f079e22166b36b637ce56d2c5873ef4023e03` was independently rebuilt
-from a clean detached checkout and compared against
-`https://invoice-evidence-pack.sociobot.in`. The deployed root, service
-worker, manifest, legal pages, initial/lazy bundles, and hero asset all
-byte-match that candidate. Core functionality, offline reload, simulated
-service-worker update, 390px mobile, keyboard/focus, reduced motion, axe,
-exports, privacy/outbound-request checks, unit/type/build/e2e gates, and a
-95/100 Lighthouse mobile run passed.
-
-**Release verdict: FAIL.** The live host returns only
-`cache-control: public, must-revalidate, max-age=30` for content-hashed
-assets, rather than long-lived immutable caching required for this static PWA.
-It also omits CSP, Permissions-Policy, framing protection, COOP/CORP, and
-serves the web manifest as `application/octet-stream`. See
-`.factory/verification-2.md` for reproducible commands, exact results, and
-severity-ranked remediation. No product code was modified by verification.
+- The paid encrypted-export path still requires a real issued license for a
+  production billing smoke test; free ZIP/PDF/backup exports are covered.
+- Browser storage quotas vary. Each attachment remains capped at 100 MB and
+  users are directed to keep exported backups.
+- PDF uses the standard Latin font set; ZIP/JSON preserve full Unicode.
+- Automated compatibility targets Chromium. Safari and Firefox installed-PWA
+  and encrypted-ZIP checks remain advisable before a broad launch.

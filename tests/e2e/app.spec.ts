@@ -1,7 +1,41 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
+test('serves the production cache, browser, and manifest policies', async ({ page, request }) => {
+  const errors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('pageerror', (error) => errors.push(error.message));
+  const navigation = await page.goto('/');
+  expect(navigation?.headers()['cache-control']).toContain('no-cache');
+
+  const headers = navigation?.headers() || {};
+  expect(headers['content-security-policy']).toBe(
+    "default-src 'self'; base-uri 'none'; connect-src 'self' https://api.sociobot.in https://pilot-api.sociobot.in; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self'; manifest-src 'self'; object-src 'none'; script-src 'self'; style-src 'self'; worker-src 'self' blob:",
+  );
+  expect(headers['permissions-policy']).toContain('camera=()');
+  expect(headers['permissions-policy']).toContain('payment=()');
+  expect(headers['x-frame-options']).toBe('DENY');
+  expect(headers['cross-origin-opener-policy']).toBe('same-origin');
+  expect(headers['cross-origin-resource-policy']).toBe('same-origin');
+  expect(headers['strict-transport-security']).toBe('max-age=63072000; includeSubDomains; preload');
+
+  const scriptPath = await page.locator('script[type="module"]').getAttribute('src');
+  expect(scriptPath).toMatch(/^\/_app\/[a-z0-9_.-]+-[a-zA-Z0-9_-]+\.js$/);
+  const asset = await request.get(scriptPath as string);
+  expect(asset.headers()['cache-control']).toBe('public, max-age=31536000, immutable');
+
+  const serviceWorker = await request.get('/sw.js');
+  expect(serviceWorker.headers()['cache-control']).toContain('no-cache');
+  const manifest = await request.get('/manifest.webmanifest');
+  expect(manifest.headers()['cache-control']).toContain('no-cache');
+  expect(manifest.headers()['content-type']).toContain('application/manifest+json');
+  expect(errors).toEqual([]);
+});
+
 test('builds and persists a packet with hashed evidence', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await expect(page).toHaveTitle(/Invoice Packet/);
   await expect(page.locator('h1')).toHaveCount(1);
@@ -31,6 +65,7 @@ test('builds and persists a packet with hashed evidence', async ({ page }) => {
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export ZIP packet' }).click();
   await expect((await download).suggestedFilename()).toBe('Acme-August-evidence.zip');
+  expect(errors).toEqual([]);
 });
 
 test('has no serious accessibility violations in empty and editor states', async ({ page }) => {

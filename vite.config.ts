@@ -1,6 +1,41 @@
 import { defineConfig, type Plugin } from 'vite';
-import { copyFile, mkdir, readdir, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { copyFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+
+interface StaticWebAppConfig {
+  routes?: Array<{ route: string; headers?: Record<string, string> }>;
+  globalHeaders?: Record<string, string>;
+  mimeTypes?: Record<string, string>;
+}
+
+const staticWebAppConfig = JSON.parse(
+  readFileSync(resolve('public', 'staticwebapp.config.json'), 'utf8'),
+) as StaticWebAppConfig;
+
+function routeMatches(pattern: string, pathname: string): boolean {
+  return pattern.endsWith('*') ? pathname.startsWith(pattern.slice(0, -1)) : pathname === pattern;
+}
+
+function productionPolicyPreview(): Plugin {
+  return {
+    name: 'production-policy-preview',
+    configurePreviewServer(server) {
+      server.middlewares.use((request, response, next) => {
+        const pathname = new URL(request.url || '/', 'http://preview.local').pathname;
+        const routeHeaders = staticWebAppConfig.routes
+          ?.find((route) => routeMatches(route.route, pathname))?.headers;
+        for (const [name, value] of Object.entries({ ...staticWebAppConfig.globalHeaders, ...routeHeaders })) {
+          response.setHeader(name, value);
+        }
+        const extension = Object.keys(staticWebAppConfig.mimeTypes || {}).find((suffix) => pathname.endsWith(suffix));
+        if (extension) response.setHeader('Content-Type', staticWebAppConfig.mimeTypes?.[extension] || '');
+        next();
+      });
+    },
+  };
+}
 
 function staticRoutes(): Plugin {
   return {
@@ -28,9 +63,15 @@ function offlineServiceWorker(): Plugin {
   return {
     name: 'offline-service-worker',
     async closeBundle() {
-      const files = ['/', '/privacy/', '/terms/', ...(await listFiles(resolve('dist')))
-        .filter((path) => !path.endsWith('.map') && path !== '/sw.js')];
-      const source = `const CACHE = 'invoice-packet-v1';
+      const builtFiles = (await listFiles(resolve('dist')))
+        .filter((path) => !path.endsWith('.map') && path !== '/sw.js' && path !== '/staticwebapp.config.json');
+      const files = ['/', '/privacy/', '/terms/', ...builtFiles];
+      const version = createHash('sha256');
+      for (const path of builtFiles.sort()) {
+        version.update(path);
+        version.update(await readFile(resolve('dist', path.slice(1))));
+      }
+      const source = `const CACHE = 'invoice-packet-${version.digest('hex').slice(0, 12)}';
 const PRECACHE = ${JSON.stringify(files)};
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(PRECACHE))));
 self.addEventListener('activate', event => event.waitUntil(Promise.all([
@@ -59,6 +100,17 @@ self.addEventListener('fetch', event => {
 }
 
 export default defineConfig({
-  plugins: [staticRoutes(), offlineServiceWorker()],
-  build: { target: 'es2022', cssCodeSplit: true, sourcemap: false },
+  plugins: [productionPolicyPreview(), staticRoutes(), offlineServiceWorker()],
+  build: {
+    target: 'es2022',
+    cssCodeSplit: true,
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        entryFileNames: '_app/[name]-[hash].js',
+        chunkFileNames: '_app/[name]-[hash].js',
+        assetFileNames: '_app/[name]-[hash][extname]',
+      },
+    },
+  },
 });

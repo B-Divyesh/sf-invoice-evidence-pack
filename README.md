@@ -48,7 +48,13 @@ Production defaults to `https://api.sociobot.in/api/v1`. The product slug is use
 
 ## Deployment
 
-Deploy `dist/` as a static site. The build emits directory fallbacks for `/privacy/` and `/terms/`, plus a generated, versioned service worker precache. The factory owns DNS and infrastructure.
+Deploy `dist/` as a static site. The build emits directory fallbacks for `/privacy/` and `/terms/`, a generated content-versioned service-worker precache, and `staticwebapp.config.json` with the required cache, MIME, CSP, permissions, framing, and cross-origin policies. The factory owns DNS and infrastructure.
+
+After deployment, verify both response policy and byte identity against the local build:
+
+```sh
+npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
+```
 
 ## Privacy and data recovery
 

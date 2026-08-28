@@ -18,6 +18,7 @@ let notice = '';
 let licensed = false;
 let online = navigator.onLine;
 let updateWorker: ServiceWorker | undefined;
+let applyingUpdate = false;
 
 function icon(name: 'plus' | 'leaf' | 'file' | 'download' | 'lock' | 'trash' | 'sun' | 'menu'): string {
   const paths = {
@@ -226,7 +227,7 @@ async function handleAction(button: HTMLElement): Promise<void> {
   if (action === 'add-item') openDialog('add-item-dialog');
   if (action === 'license') openDialog('license-dialog');
   if (action === 'reload') location.reload();
-  if (action === 'update-sw' && updateWorker) updateWorker.postMessage({ type: 'SKIP_WAITING' });
+  if (action === 'update-sw' && updateWorker) { applyingUpdate = true; updateWorker.postMessage({ type: 'SKIP_WAITING' }); }
   const packet = currentPacket();
   if (!packet) return;
   if (action === 'delete' && confirm(`Delete “${packet.title}” and every locally stored attachment? This cannot be undone.`)) {
@@ -354,7 +355,7 @@ async function registerServiceWorker(): Promise<void> {
       const worker = registration.installing;
       worker?.addEventListener('statechange', () => { if (worker.state === 'installed' && navigator.serviceWorker.controller) { updateWorker = worker; render(); } });
     });
-    navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (applyingUpdate) location.reload(); });
   } catch { announce('Offline installation is unavailable, but your local packets still work.'); }
 }
 

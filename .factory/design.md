@@ -14,7 +14,7 @@ Invoice Packet treats each business event like a field specimen: collected once,
 - `lichen` `#DDE6D4`: selected and progress surfaces.
 - `ochre` `#9B5E12` / `#FFF1D5`: missing-item warning pair.
 - `berry` `#9E3F42` / `#F9E3E1`: destructive and error pair.
-- `slate` `#596A63`: muted text (AA on paper).
+- `slate` `#50615A`: muted text (AA on paper and lichen surfaces).
 - Dark treatment: `#10211C` night-paper, `#182D26` sheet, `#ECF1E8` ink, `#8EC3A2` fern, `#263D31` lichen. A manual theme switch persists locally, with system preference as the initial setting.
 
 ## Typography
@@ -52,4 +52,3 @@ Invoice Packet treats each business event like a field specimen: collected once,
 Use case: stylized-concept. Asset type: PWA landing-page hero. Primary request: an editorial botanical field-guide still life that visualizes assembling evidence around one invoice. Scene: top-down open cream archival folio on a warm paper desk, one blank invoice-like sheet held by a brass paper clip, small unprinted evidence tags and translucent file sleeves arranged with a pressed fern, eucalyptus sprig, seed pods, and a magnifying glass. Style: refined gouache and colored-pencil natural-history illustration with crisp cut-paper edges and subtle paper grain, contemporary rather than vintage. Composition: landscape, main folio on the right, breathing room and a few loose leaves on the left for responsive cropping. Light: diffuse northern-window daylight, calm and trustworthy. Palette: warm paper, deep archival green, moss, lichen, restrained ochre and berry. Avoid: readable text, letters, numbers, logos, watermarks, currency symbols, people, hands, screens, photorealism, gradients, clutter, distorted objects, ominous tax imagery.
 
 Generated using the factory image deployment on 2026-08-28 via `/opt/fleet/lib/gen-image.sh`. The image is original to Invoice Packet and used under the project's MIT license. The selected source and exact prompt sidecar live in `assets/src/`; optimized WebP derivatives live in `public/assets/`.
-

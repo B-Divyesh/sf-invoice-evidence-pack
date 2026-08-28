@@ -3,7 +3,7 @@
   --paper: #f4f0e6;
   --sheet: #fffcf5;
   --ink: #183129;
-  --muted: #596a63;
+  --muted: #50615a;
   --moss: #285b45;
   --fern: #39765a;
   --lichen: #dde6d4;
@@ -113,7 +113,7 @@ main { min-height: 62vh; }
 .packet-tab strong, .packet-tab small { display: block; }
 .packet-tab strong { max-width: 184px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .packet-tab small { margin-top: 3px; color: var(--muted); }
-.specimen-no { color: var(--fern); font: 800 11px ui-sans-serif, system-ui, sans-serif; }
+.specimen-no { color: var(--moss); font: 800 11px ui-sans-serif, system-ui, sans-serif; }
 .data-tools { margin-top: auto; padding-top: 28px; }
 .data-tools p { color: var(--muted); font-size: 13px; }
 .text-button { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; border: 0; padding: 8px 4px; background: transparent; color: var(--moss); cursor: pointer; font-weight: 750; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--moss) 35%, transparent); text-underline-offset: 4px; }

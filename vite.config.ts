@@ -28,8 +28,8 @@ function offlineServiceWorker(): Plugin {
   return {
     name: 'offline-service-worker',
     async closeBundle() {
-      const files = (await listFiles(resolve('dist')))
-        .filter((path) => !path.endsWith('.map') && path !== '/sw.js');
+      const files = ['/', '/privacy/', '/terms/', ...(await listFiles(resolve('dist')))
+        .filter((path) => !path.endsWith('.map') && path !== '/sw.js')];
       const source = `const CACHE = 'invoice-packet-v1';
 const PRECACHE = ${JSON.stringify(files)};
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(PRECACHE))));
@@ -48,7 +48,7 @@ self.addEventListener('fetch', event => {
     }).catch(async () => (await caches.match(event.request)) || (await caches.match('/')) || caches.match('/offline.html')));
     return;
   }
-  event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
+  event.respondWith(caches.match(url.pathname, { ignoreSearch: true }).then(cached => cached || fetch(event.request).then(response => {
     if (response.ok) { const clone = response.clone(); caches.open(CACHE).then(cache => cache.put(event.request, clone)); }
     return response;
   })));
@@ -60,5 +60,5 @@ self.addEventListener('fetch', event => {
 
 export default defineConfig({
   plugins: [staticRoutes(), offlineServiceWorker()],
-  build: { target: 'es2022', cssCodeSplit: true, sourcemap: true },
+  build: { target: 'es2022', cssCodeSplit: true, sourcemap: false },
 });

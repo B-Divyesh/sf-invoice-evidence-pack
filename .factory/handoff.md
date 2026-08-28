@@ -16,6 +16,7 @@
 - `npm run build`: passed; writes `dist/index.html` and static `/privacy/` and `/terms/` fallbacks.
 - `npm run test:e2e`: 9 passed, 1 intentionally skipped duplicate (desktop + 390px mobile). Covers packet creation, file hashing, persistence after reload, ZIP download, axe serious/critical rules in light and dark treatments, mobile overflow, legal routes, and explicit offline reload with `context.setOffline(true)`.
 - `npm audit --omit=dev`: 0 vulnerabilities.
+- `/opt/fleet/lib/verify-url.sh`: HTTP 200, no page/console errors, title and `lang` present, exactly one `h1`, main landmark present, no missing image alt text, and no unlabeled buttons.
 - Lighthouse 12.8.2, mobile profile against the production build: Performance 100, Accessibility 100, Best Practices 100, SEO 100. FCP 0.9 s, LCP 1.5 s, TBT 0 ms, CLS 0.
 - Initial app JS: 40.8 KB uncompressed / 14.2 KB gzip. CSS: 19.9 KB / 5.2 KB gzip. PDF and ZIP libraries are lazy-loaded only when exporting.
 - Manual visual review completed at 1440px and 390px; keyboard-native controls, focus rings, dialog semantics, alt text, one `h1`, and responsive stacking are present.

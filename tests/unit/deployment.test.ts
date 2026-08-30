@@ -7,6 +7,7 @@ interface StaticWebAppConfig {
   globalHeaders: Record<string, string>;
   mimeTypes: Record<string, string>;
   responseOverrides: Record<string, { rewrite: string }>;
+  navigationFallback?: unknown;
 }
 
 const config = JSON.parse(
@@ -25,6 +26,7 @@ describe('static deployment policy', () => {
   it('ships the manifest with an interoperable MIME type', () => {
     expect(config.mimeTypes['.webmanifest']).toBe('application/manifest+json');
     expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html' });
+    expect(config.navigationFallback).toBeUndefined();
   });
 
   it('denies framing, ambient capabilities, and unexpected content sources', () => {

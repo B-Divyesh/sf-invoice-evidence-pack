@@ -2,16 +2,20 @@
 
 Invoice Packet uses locally hosted, subset copies of Noto Sans Devanagari and
 Noto Sans JP only when creating PDF manifests. The web interface continues to
-use system fonts. The subsets were produced from the Google Fonts sources at
-`google/fonts` on 30 August 2026.
+use system fonts. The small core subsets cover the shipped cross-border sample;
+the complete local source fonts load only when an export needs characters
+outside those subsets. The files were produced from the Google Fonts sources
+at `google/fonts` on 30 August 2026.
 
 - Noto Sans Devanagari: Copyright 2022 The Noto Project Authors.
 - Noto Sans JP: Copyright 2014–2021 Adobe and the Noto Project Authors.
 
 Both font files are licensed under the SIL Open Font License, Version 1.1:
 
-- `noto-sans-devanagari.ttf` SHA-256: `40626e5324a1daf78f725d61b33971fbd82858eb114833acc7597eee755febb1`
-- `noto-sans-jp.ttf` SHA-256: `779368c39be1ec13d2c14ad468c914669aed98744765a61eb3c5c5616d069d05`
+- `noto-sans-devanagari.ttf` (core subset) SHA-256: `932e78cde6b835e52fab78660fd8d3699341363ef17a0530c2d3d4360d483c55`
+- `noto-sans-devanagari-full.ttf` (on-demand fallback) SHA-256: `40626e5324a1daf78f725d61b33971fbd82858eb114833acc7597eee755febb1`
+- `noto-sans-jp.ttf` (core subset) SHA-256: `f4907cd2c2cbc767903655b96cae857c9d20896f9e9448c123418440194a64bf`
+- `noto-sans-jp-full.ttf` (on-demand fallback) SHA-256: `779368c39be1ec13d2c14ad468c914669aed98744765a61eb3c5c5616d069d05`
 
 > Permission is hereby granted, free of charge, to any person obtaining a copy
 > of the Font Software, to use, study, copy, merge, embed, modify, redistribute,

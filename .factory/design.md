@@ -21,7 +21,7 @@ Invoice Packet treats each business event like a field specimen: collected once,
 
 - Headings and packet names: Georgia, Cambria, `Times New Roman`, serif. The organic bracketed serifs evoke printed field manuals without downloading a font.
 - UI, notes, labels, and tables: Inter-compatible system stack (`ui-sans-serif`, `system-ui`, sans-serif). Tabular numerals are enabled for dates, file sizes, and hashes.
-- PDF export embeds local, subset copies of Noto Sans Devanagari and Noto Sans JP so cross-border metadata remains readable and extractable. These functional export fonts are SIL OFL 1.1; details are in `THIRD_PARTY_NOTICES.md`.
+- PDF export embeds local, subset copies of Noto Sans Devanagari and Noto Sans JP so cross-border metadata remains readable and extractable. The small core subsets cover the shipped sample; complete local fallback fonts load only when an export includes other script characters. These functional export fonts are SIL OFL 1.1; details are in `THIRD_PARTY_NOTICES.md`.
 - Scale: 14px specimen labels; 16px body; 20px section title; responsive 30–48px display. Reading measure is capped at 68 characters.
 
 ## Spacing and shape
@@ -56,3 +56,9 @@ Generated using the factory image deployment on 2026-08-28 via `/opt/fleet/lib/g
 
 The 1200×630 social card is a centered local crop of the same original hero,
 created with ImageMagick on 2026-08-30. It introduces no new source material.
+
+On 2026-08-30, the PDF core script subsets were generated locally with
+FontTools 4.63.0 from the already-noted Noto sources. The complete source
+fonts remain locally hosted as on-demand fallbacks so uncommon Devanagari or
+Japanese metadata still exports correctly without putting multi-megabyte fonts
+in the offline installation shell.

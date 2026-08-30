@@ -7,7 +7,11 @@ const BASE_URL = import.meta.env.VITE_BILLING_BASE_URL || 'https://api.sociobot.
 interface Verdict { valid: boolean; checkedAt: number; reason?: string }
 
 export const checkoutUrl = `${BASE_URL}/products/${SLUG}/checkout`;
-export const checkoutEnabled = import.meta.env.VITE_BILLING_ENABLED === 'true';
+// This product is registered with the factory billing catalog. Keeping the
+// hosted checkout visible is required for a new customer to obtain the
+// one-time encrypted-export license; it does not make a network request until
+// the customer explicitly follows the link.
+export const checkoutEnabled = true;
 
 export function captureReturnedLicense(): void {
   const url = new URL(location.href);

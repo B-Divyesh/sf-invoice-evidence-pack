@@ -1,7 +1,7 @@
 import { defineConfig, type Plugin } from 'vite';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { copyFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 interface StaticWebAppConfig {
@@ -49,28 +49,59 @@ function staticRoutes(): Plugin {
   };
 }
 
-async function listFiles(directory: string, base = directory): Promise<string[]> {
-  const entries = await readdir(directory, { withFileTypes: true });
-  const files = await Promise.all(entries.map(async (entry) => {
-    const path = resolve(directory, entry.name);
-    if (entry.isDirectory()) return listFiles(path, base);
-    return [`/${path.slice(base.length + 1).replaceAll('\\', '/')}`];
-  }));
-  return files.flat();
+interface BuildManifestEntry {
+  file: string;
+  css?: string[];
+  imports?: string[];
+  isEntry?: boolean;
+}
+
+function emittedFileForCachePath(path: string): string {
+  const routeFiles: Record<string, string> = {
+    '/': 'index.html',
+    '/demo/': 'demo/index.html',
+    '/privacy/': 'privacy/index.html',
+    '/terms/': 'terms/index.html',
+  };
+  return routeFiles[path] || path.slice(1);
+}
+
+async function appShellAssets(): Promise<string[]> {
+  const manifestPath = resolve('dist', 'asset-manifest.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<string, BuildManifestEntry>;
+  const entry = Object.entries(manifest).find(([, value]) => value.isEntry)?.[0];
+  if (!entry) throw new Error('The Vite entry was not found while building the offline shell.');
+
+  const assets = new Set<string>();
+  const visit = (key: string): void => {
+    const item = manifest[key];
+    if (!item) throw new Error(`Missing ${key} from the Vite build manifest.`);
+    assets.add(`/${item.file}`);
+    item.css?.forEach((file) => assets.add(`/${file}`));
+    item.imports?.forEach(visit);
+  };
+  visit(entry);
+  await unlink(manifestPath);
+  return [...assets];
 }
 
 function offlineServiceWorker(): Plugin {
   return {
     name: 'offline-service-worker',
     async closeBundle() {
-      const builtFiles = (await listFiles(resolve('dist')))
-        .filter((path) => !path.endsWith('.map') && path !== '/sw.js' && path !== '/staticwebapp.config.json')
-        .sort();
-      const files = ['/', '/demo/', '/privacy/', '/terms/', ...builtFiles];
+      // Keep installation small and deterministic. Export libraries and PDF fonts are
+      // fetched only when an export needs them, then cached by the fetch handler for
+      // subsequent offline use. Precaching all emitted chunks made a first visit 6.9 MB.
+      const files = [...new Set([
+        '/', '/demo/', '/privacy/', '/terms/', '/offline.html', '/manifest.webmanifest',
+        '/icons/mark.svg', '/icons/icon-192.png', '/icons/icon-512.png',
+        '/assets/hero-field-guide-768.webp', '/assets/hero-field-guide-1536.webp', '/assets/hero-field-guide-768.jpg',
+        ...await appShellAssets(),
+      ])].sort();
       const version = createHash('sha256');
-      for (const path of builtFiles) {
+      for (const path of files) {
         version.update(path);
-        version.update(await readFile(resolve('dist', path.slice(1))));
+        version.update(await readFile(resolve('dist', emittedFileForCachePath(path))));
       }
       const source = `const CACHE = 'invoice-packet-${version.digest('hex').slice(0, 12)}';
 const PRECACHE = ${JSON.stringify(files)};
@@ -86,12 +117,13 @@ self.addEventListener('fetch', event => {
   if (url.origin !== location.origin) return;
   if (event.request.mode === 'navigate') {
     event.respondWith(fetch(event.request).then(response => {
-      const clone = response.clone(); caches.open(CACHE).then(cache => cache.put(event.request, clone)); return response;
+      if (response.ok) event.waitUntil(caches.open(CACHE).then(cache => cache.put(event.request, response.clone())));
+      return response;
     }).catch(async () => (await caches.match(event.request)) || (await caches.match('/')) || caches.match('/offline.html')));
     return;
   }
   event.respondWith(caches.match(url.pathname, { ignoreSearch: true }).then(cached => cached || fetch(event.request).then(response => {
-    if (response.ok) { const clone = response.clone(); caches.open(CACHE).then(cache => cache.put(event.request, clone)); }
+    if (response.ok) event.waitUntil(caches.open(CACHE).then(cache => cache.put(event.request, response.clone())));
     return response;
   })));
 });`;
@@ -105,6 +137,7 @@ export default defineConfig({
   build: {
     target: 'es2022',
     cssCodeSplit: true,
+    manifest: 'asset-manifest.json',
     sourcemap: false,
     rollupOptions: {
       output: {

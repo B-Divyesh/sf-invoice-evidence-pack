@@ -89,5 +89,40 @@
     "where": "editor, license dialog, terms, README",
     "test": "npm run test:e2e -- --project=chromium --grep @claim:custom-templates",
     "sandbox": "isolated demo; save the current checklist and assert it appears as an option for a new packet"
+  },
+  {
+    "id": "one-time-checkout",
+    "claim": "A $19 one-time hosted checkout is available for encrypted ZIPs and reusable custom templates.",
+    "where": "license dialog, assurance strip, terms, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:one-time-checkout",
+    "sandbox": "fresh Chromium context; open the license dialog and assert the exact registered hosted checkout URL and visible restore action"
+  },
+  {
+    "id": "configurable-checklists",
+    "claim": "Start a packet from cross-border filing, client review, or payment-trail checklists.",
+    "where": "new-packet dialog, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:configurable-checklists",
+    "sandbox": "fresh Chromium context; assert the filing and client options, select payment-trail, create a packet, and observe its checklist"
+  },
+  {
+    "id": "no-document-backend",
+    "claim": "Invoice Packet has no document backend or analytics for packet workflows.",
+    "where": "assurance strip, privacy page, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:no-document-backend",
+    "sandbox": "fresh Chromium context; record every request while creating a packet and attaching evidence, then assert no third-party request occurs"
+  },
+  {
+    "id": "pwa-installable",
+    "claim": "Invoice Packet can be installed as a standalone PWA.",
+    "where": "README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:pwa-installable",
+    "sandbox": "fresh Chromium context; assert a controlling service worker plus standalone manifest display, versioned start URL, and 192/512 icons"
+  },
+  {
+    "id": "free-exports",
+    "claim": "ZIP, PDF, and JSON backup exports are free.",
+    "where": "landing facts, assurance strip, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:free-exports",
+    "sandbox": "fresh Chromium context; create a packet and observe ZIP, PDF, and JSON backup downloads without a license"
   }
 ]

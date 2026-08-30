@@ -16,10 +16,10 @@ Try the isolated sample workspace: <https://invoice-evidence-pack.sociobot.in/de
 - Preserves Devanagari and Japanese packet metadata in PDF text.
 - Redacts original filenames when requested.
 - Imports complete JSON backups onto another browser.
-- Installs as a PWA and reloads with the full workflow offline after the first successful visit.
+- Installs as a standalone PWA and reloads after the first successful visit without a network connection.
 - Restores existing licenses for AES-256 encrypted ZIPs and reusable custom templates.
 
-New checkout is environment-gated while the shared product registration is unavailable. Set `VITE_BILLING_ENABLED=true` only after the product checkout returns a hosted purchase page. The free workflow never waits for billing.
+The $19 one-time checkout unlocks AES-256 encrypted ZIPs and reusable custom templates. The free workflow never waits for billing.
 
 “Complete” means only that all items marked required have an attachment. The product is jurisdiction-configurable and does not provide tax or legal advice or submit filings.
 
@@ -44,13 +44,13 @@ npm run test:e2e
 
 The exact production build command is `npm run build`. Output lands in `dist/`, with `dist/index.html` at its root. End-to-end tests use Playwright 1.58.2 and cover desktop Chromium, a 390px mobile Chromium viewport, local persistence, ZIP download, serious/critical axe checks in both themes, legal routes, and a service-worker-backed offline reload.
 
-To enable checkout against the staging billing engine after product registration:
+To point a staging build at the staging billing engine:
 
 ```sh
-VITE_BILLING_ENABLED=true VITE_BILLING_BASE_URL=https://pilot-api.sociobot.in/api/v1 npm run build
+VITE_BILLING_BASE_URL=https://pilot-api.sociobot.in/api/v1 npm run build
 ```
 
-Production defaults to `https://api.sociobot.in/api/v1`. Checkout stays hidden unless `VITE_BILLING_ENABLED=true`. The product slug is used by the billing contract; no provider product ID or secret is embedded.
+Production defaults to `https://api.sociobot.in/api/v1`. The product slug is used by the billing contract; no provider product ID or secret is embedded.
 
 ## Deployment
 

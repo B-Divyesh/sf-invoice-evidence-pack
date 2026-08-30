@@ -1,7 +1,25 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFile } from 'node:fs/promises';
 import { BlobReader, TextWriter, ZipReader } from '@zip.js/zip.js';
+
+const ORIGIN = 'http://127.0.0.1:4173';
+
+// Archive, password, and offline checks all create a fresh, owned context.
+// Closing that context releases downloads, service workers, and PDF workers
+// without ever closing Playwright's shared Chromium browser.
+async function withIsolatedPage(
+  browser: Browser,
+  workflow: (page: Page, context: BrowserContext) => Promise<void>,
+): Promise<void> {
+  const context = await browser.newContext({ acceptDownloads: true, baseURL: ORIGIN });
+  const page = await context.newPage();
+  try {
+    await workflow(page, context);
+  } finally {
+    await context.close();
+  }
+}
 
 test('serves the production cache, browser, and manifest policies', async ({ page, request }) => {
   const errors: string[] = [];
@@ -34,7 +52,8 @@ test('serves the production cache, browser, and manifest policies', async ({ pag
   expect(errors).toEqual([]);
 });
 
-test('builds and persists a packet with hashed evidence', async ({ page }) => {
+test('builds and persists a packet with hashed evidence', async ({ browser }) => {
+  await withIsolatedPage(browser, async (page) => {
   const errors: string[] = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   page.on('pageerror', (error) => errors.push(error.message));
@@ -69,6 +88,7 @@ test('builds and persists a packet with hashed evidence', async ({ page }) => {
   await page.getByRole('button', { name: 'Export ZIP packet' }).click();
   await expect((await download).suggestedFilename()).toBe('Acme-August-evidence.zip');
   expect(errors).toEqual([]);
+  });
 });
 
 test('has no serious accessibility violations in empty and editor states', async ({ page }) => {
@@ -87,8 +107,9 @@ test('has no serious accessibility violations in empty and editor states', async
   expect(results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact || ''))).toEqual([]);
 });
 
-test('@claim:duplicate-zip exports distinct files that share a source filename', async ({ page }, testInfo) => {
+test('@claim:duplicate-zip exports distinct files that share a source filename', async ({ browser }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium');
+  await withIsolatedPage(browser, async (page) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Start your first packet' }).click();
   await page.getByLabel('Packet name Required').fill('Duplicate filename packet');
@@ -115,6 +136,7 @@ test('@claim:duplicate-zip exports distinct files that share a source filename',
   expect(manifest.evidence?.slice(0, 2).map((item) => item.filename)).toEqual(['proof.pdf', 'proof.pdf']);
   expect(manifest.evidence?.slice(0, 2).map((item) => item.archiveFilename)).toEqual(['proof.pdf', 'proof-2.pdf']);
   await reader.close();
+  });
 });
 
 test('@claim:backup-import imports a backup from the fresh-device empty state', async ({ page }, testInfo) => {
@@ -143,8 +165,13 @@ test('@claim:backup-import imports a backup from the fresh-device empty state', 
   await expect(page.getByText('Backup restored on this device.')).toBeVisible();
 });
 
-test('@claim:unicode-pdf keeps Devanagari and Japanese metadata extractable', async ({ page }, testInfo) => {
+test('@claim:unicode-pdf keeps Devanagari and Japanese metadata extractable', async ({ browser }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium');
+  await withIsolatedPage(browser, async (page) => {
+  const fontRequests: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/assets/noto-sans-')) fontRequests.push(request.url());
+  });
   await page.goto('/');
   await page.getByRole('button', { name: 'Start your first packet' }).click();
   await page.getByLabel('Packet name Required').fill('मुंबई 東京 packet');
@@ -167,14 +194,126 @@ test('@claim:unicode-pdf keeps Devanagari and Japanese metadata extractable', as
   expect(extracted).toContain('山田商事');
   expect(extracted).toContain('भारत / 日本');
   await document.destroy();
+  expect(fontRequests).toEqual(expect.arrayContaining([
+    expect.stringContaining('/assets/noto-sans-devanagari.ttf'),
+    expect.stringContaining('/assets/noto-sans-jp.ttf'),
+  ]));
+  expect(fontRequests.some((url) => url.includes('-full.ttf'))).toBe(false);
+  });
 });
 
-test('keeps checkout fail-soft until billing is enabled', async ({ page }) => {
+test('loads full local script fonts only for uncommon PDF metadata', async ({ browser }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  await withIsolatedPage(browser, async (page) => {
+    const fontRequests: string[] = [];
+    page.on('request', (request) => {
+      if (request.url().includes('/assets/noto-sans-')) fontRequests.push(request.url());
+    });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Start your first packet' }).click();
+    await page.getByLabel('Packet name Required').fill('大阪 client review');
+    await page.getByRole('button', { name: 'Create packet' }).click();
+    page.once('dialog', (dialog) => dialog.accept());
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export PDF manifest' }).click();
+    const path = await (await download).path();
+    const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    const document = await getDocument({ data: new Uint8Array(await readFile(path as string)) }).promise;
+    const text = await (await document.getPage(1)).getTextContent();
+    expect(text.items.map((item) => ('str' in item ? item.str : '')).join(' ').replace(/\s+/g, ' ')).toContain('大阪 client review');
+    await document.destroy();
+    expect(fontRequests).toEqual(expect.arrayContaining([
+      expect.stringContaining('/assets/noto-sans-devanagari-full.ttf'),
+      expect.stringContaining('/assets/noto-sans-jp-full.ttf'),
+    ]));
+  });
+});
+
+test('@claim:one-time-checkout offers the hosted one-time license checkout', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
   await page.goto('/');
-  await page.getByRole('button', { name: 'Restore an existing license' }).click();
-  await expect(page.getByText('New purchases are temporarily unavailable.')).toBeVisible();
-  await expect(page.getByRole('link', { name: /Buy the one-time/ })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Encrypted exports · $19 once' }).click();
+  await expect(page.getByRole('link', { name: 'Buy the one-time license' })).toHaveAttribute(
+    'href',
+    'https://api.sociobot.in/api/v1/products/invoice-evidence-pack/checkout',
+  );
   await expect(page.getByRole('button', { name: 'Verify and restore' })).toBeVisible();
+  await page.route('https://api.sociobot.in/api/v1/products/invoice-evidence-pack/verify?license=returned-license', (route) => route.abort());
+  await page.goto('/?license=returned-license');
+  await expect(page).toHaveURL(/\/$/);
+  expect(await page.evaluate(() => localStorage.getItem('sb_license:invoice-evidence-pack'))).toBe('returned-license');
+});
+
+test('@claim:configurable-checklists starts packets from filing, client, and payment-trail lists', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Start your first packet' }).click();
+  const checklist = page.getByLabel('Starting checklist');
+  await expect(checklist.getByRole('option', { name: 'Cross-border filing review' })).toHaveCount(1);
+  await expect(checklist.getByRole('option', { name: 'Client payment review' })).toHaveCount(1);
+  await checklist.selectOption('payment-trail');
+  await page.getByLabel('Packet name Required').fill('Payment trail packet');
+  await page.getByRole('button', { name: 'Create packet' }).click();
+  await expect(page.getByRole('heading', { name: 'Payment trail packet' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Bank credit record' })).toBeVisible();
+});
+
+test('@claim:no-document-backend sends no packet, analytics, or tracking request during a normal workflow', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  const externalRequests: string[] = [];
+  page.on('request', (request) => {
+    const url = new URL(request.url());
+    if (url.origin !== ORIGIN && url.protocol !== 'blob:') externalRequests.push(request.url());
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Start your first packet' }).click();
+  await page.getByLabel('Packet name Required').fill('Local request audit');
+  await page.getByRole('button', { name: 'Create packet' }).click();
+  await page.locator('input[type="file"][data-item]').first().setInputFiles({
+    name: 'local-only.txt', mimeType: 'text/plain', buffer: Buffer.from('local packet bytes'),
+  });
+  await expect(page.getByText('Evidence stored locally and fingerprinted.')).toBeVisible();
+  expect(externalRequests).toEqual([]);
+});
+
+test('@claim:pwa-installable ships an installable standalone manifest and controlled service worker', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  await page.goto('/');
+  await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+  const manifest = await page.evaluate(async () => (await fetch('/manifest.webmanifest')).json());
+  expect(manifest).toMatchObject({ display: 'standalone', start_url: expect.stringContaining('?v=') });
+  expect(manifest.icons).toEqual(expect.arrayContaining([
+    expect.objectContaining({ src: '/icons/icon-192.png', sizes: '192x192' }),
+    expect.objectContaining({ src: '/icons/icon-512.png', sizes: '512x512', purpose: 'any maskable' }),
+  ]));
+});
+
+test('@claim:free-exports downloads free ZIP, PDF, and JSON backup files', async ({ browser }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  await withIsolatedPage(browser, async (page) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Start your first packet' }).click();
+    await page.getByLabel('Packet name Required').fill('Free export packet');
+    await page.getByRole('button', { name: 'Create packet' }).click();
+    await page.locator('input[type="file"][data-item]').first().setInputFiles({
+      name: 'export-proof.txt', mimeType: 'text/plain', buffer: Buffer.from('free export bytes'),
+    });
+
+    page.once('dialog', (dialog) => dialog.accept());
+    const zip = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export ZIP packet' }).click();
+    await expect((await zip).suggestedFilename()).toBe('Free-export-packet.zip');
+
+    page.once('dialog', (dialog) => dialog.accept());
+    const pdf = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export PDF manifest' }).click();
+    await expect((await pdf).suggestedFilename()).toBe('Free-export-packet-manifest.pdf');
+
+    const backup = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Back up all data' }).click();
+    await expect((await backup).suggestedFilename()).toMatch(/^invoice-packet-backup-\d{4}-\d{2}-\d{2}\.json$/);
+  });
 });
 
 test('@claim:demo-sandbox @claim:local-only opens a useful isolated demo without third-party requests', async ({ page }) => {
@@ -193,8 +332,9 @@ test('@claim:demo-sandbox @claim:local-only opens a useful isolated demo without
   expect(externalRequests).toEqual([]);
 });
 
-test('@claim:aes-zip @claim:custom-templates exercises paid tools inside the demo sandbox', async ({ page }, testInfo) => {
+test('@claim:aes-zip @claim:custom-templates exercises paid tools inside the demo sandbox', async ({ browser }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium');
+  await withIsolatedPage(browser, async (page) => {
   await page.goto('/demo/');
   const inputs = page.locator('input[type="file"][data-item]');
   await inputs.nth(0).setInputFiles({ name: 'proof.pdf', mimeType: 'application/pdf', buffer: Buffer.from('encrypted first bytes') });
@@ -226,6 +366,7 @@ test('@claim:aes-zip @claim:custom-templates exercises paid tools inside the dem
   await expect(page.getByText('Custom template saved on this device.')).toBeVisible();
   await page.getByRole('button', { name: 'Create packet' }).click();
   await expect(page.getByLabel('Starting checklist').getByRole('option', { name: 'Monthly client review · My template' })).toHaveCount(1);
+  });
 });
 
 test('works at 390px without horizontal page overflow', async ({ page }, testInfo) => {
@@ -282,17 +423,55 @@ test('keeps evidence controls focused, touch-sized, and rejects whitespace-only 
     expect(size.width).toBeGreaterThanOrEqual(44);
     expect(size.height).toBeGreaterThanOrEqual(44);
   }
+  for (const control of await page.locator('.check-label:visible').all()) {
+    const size = await control.evaluate((element) => ({ width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height }));
+    expect(size.width).toBeGreaterThanOrEqual(44);
+    expect(size.height).toBeGreaterThanOrEqual(44);
+  }
+  const updateSize = await page.evaluate(() => {
+    const note = document.createElement('div');
+    note.className = 'update-note';
+    note.innerHTML = '<button>Update now</button>';
+    document.body.append(note);
+    const rect = note.querySelector('button')?.getBoundingClientRect();
+    note.remove();
+    return { width: rect?.width || 0, height: rect?.height || 0 };
+  });
+  expect(updateSize.width).toBeGreaterThanOrEqual(44);
+  expect(updateSize.height).toBeGreaterThanOrEqual(44);
 });
 
-test('@claim:offline-reload serves the app from its service worker while offline', async ({ page, context }) => {
-  await page.goto('/');
-  await page.evaluate(async () => { await navigator.serviceWorker.ready; });
-  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
-  await expect(page.getByText('Build a complete invoice evidence packet.')).toBeVisible();
-  await context.setOffline(true);
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await expect(page.getByText('Build a complete invoice evidence packet.')).toBeVisible();
-  await expect(page.locator('.network')).toHaveClass(/offline/);
+test('keeps the shared Chromium browser alive after test-owned contexts close', async ({ browser }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  await withIsolatedPage(browser, async (page) => {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  });
+  expect(browser.isConnected()).toBe(true);
+  await withIsolatedPage(browser, async (page) => {
+    await page.goto('/demo/');
+    await expect(page.getByText('Demo — sample data, nothing is saved to your packets')).toBeVisible();
+  });
+  expect(browser.isConnected()).toBe(true);
+});
+
+test('@claim:offline-reload serves the app from its service worker while offline', async ({ browser }) => {
+  await withIsolatedPage(browser, async (page, context) => {
+    await page.goto('/');
+    await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+    await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+    await expect(page.getByText('Build a complete invoice evidence packet.')).toBeVisible();
+    const cached = await page.evaluate(async () => {
+      const keys = await caches.keys();
+      const requests = await Promise.all(keys.map(async (key) => (await caches.open(key)).keys()));
+      return requests.flatMap((requests) => requests.map((request) => request.url));
+    });
+    expect(cached.some((url) => /noto-sans|fontkit\.es/.test(url))).toBe(false);
+    await context.setOffline(true);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.getByText('Build a complete invoice evidence packet.')).toBeVisible();
+    await expect(page.locator('.network')).toHaveClass(/offline/);
+  });
 });
 
 test('privacy and terms routes have semantic page titles', async ({ page }) => {

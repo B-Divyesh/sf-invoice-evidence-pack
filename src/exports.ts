@@ -137,12 +137,37 @@ export async function exportPdf(packet: Packet, redactFilenames: boolean): Promi
     fetch('/assets/noto-sans-jp.ttf'),
   ]);
   if (!baseResponse.ok || !japaneseResponse.ok) throw new Error('The PDF text fonts could not be loaded.');
-  const [regular, japanese] = await Promise.all([
+  let [regular, japanese] = await Promise.all([
     pdf.embedFont(await baseResponse.arrayBuffer(), { subset: true }),
     pdf.embedFont(await japaneseResponse.arrayBuffer(), { subset: true }),
   ]);
-  const baseCharacters = new Set(regular.getCharacterSet());
-  const japaneseCharacters = new Set(japanese.getCharacterSet());
+  let baseCharacters = new Set(regular.getCharacterSet());
+  let japaneseCharacters = new Set(japanese.getCharacterSet());
+  const packetText = [
+    packet.title, packet.invoiceNumber, packet.client, packet.invoiceDate, packet.jurisdiction, packet.currency, packet.notes,
+    ...packet.items.flatMap((item) => [item.label, item.description, item.fileName || '', item.sha256 || '']),
+  ].join('');
+  const requiresFullScriptFonts = Array.from(packetText.normalize('NFC')).some((character) => {
+    const codePoint = character.codePointAt(0) as number;
+    return !baseCharacters.has(codePoint) && !japaneseCharacters.has(codePoint);
+  });
+  // The small core subsets cover the shipped cross-border examples. An unusual
+  // script character pulls the complete local source font only for that export,
+  // preserving arbitrary Devanagari/Japanese metadata without making a first
+  // offline installation download multi-megabyte export assets.
+  if (requiresFullScriptFonts) {
+    const [fullBaseResponse, fullJapaneseResponse] = await Promise.all([
+      fetch('/assets/noto-sans-devanagari-full.ttf'),
+      fetch('/assets/noto-sans-jp-full.ttf'),
+    ]);
+    if (!fullBaseResponse.ok || !fullJapaneseResponse.ok) throw new Error('The complete PDF text fonts could not be loaded.');
+    [regular, japanese] = await Promise.all([
+      pdf.embedFont(await fullBaseResponse.arrayBuffer(), { subset: true }),
+      pdf.embedFont(await fullJapaneseResponse.arrayBuffer(), { subset: true }),
+    ]);
+    baseCharacters = new Set(regular.getCharacterSet());
+    japaneseCharacters = new Set(japanese.getCharacterSet());
+  }
   const textRuns = (value: string) => {
     const runs: Array<{ text: string; font: typeof regular }> = [];
     for (const sourceCharacter of Array.from(value.normalize('NFC'))) {

@@ -148,7 +148,7 @@ textarea { resize: vertical; line-height: 1.55; }
 input:hover, select:hover, textarea:hover { border-color: var(--fern); }
 .check-label { grid-template-columns: 22px 1fr; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; font-weight: 650; }
 .check-label input { width: 20px; min-height: 20px; height: 20px; accent-color: var(--moss); }
-.check-label.compact { min-height: 40px; }
+.check-label.compact { min-height: 44px; }
 .evidence-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
 .evidence { display: grid; grid-template-columns: 46px 1fr; border: 1px solid var(--line); border-left: 4px solid var(--ochre); background: var(--sheet); }
 .evidence.collected { border-left-color: var(--fern); }
@@ -208,7 +208,7 @@ code { font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; }
 .error-state h2 { font-size: 40px; }
 .error-state p { max-width: 42rem; color: var(--muted); }
 .update-note { position: sticky; z-index: 15; top: 0; padding: 9px 20px; background: var(--ochre-soft); color: var(--ochre); text-align: center; font-weight: 700; }
-.update-note button { min-height: 36px; border: 0; background: transparent; color: inherit; text-decoration: underline; cursor: pointer; font-weight: 800; }
+.update-note button { min-height: 44px; padding: 8px 6px; border: 0; background: transparent; color: inherit; text-decoration: underline; cursor: pointer; font-weight: 800; }
 .demo-banner { display: flex; justify-content: center; align-items: center; gap: 16px 28px; padding: 12px max(20px, calc((100vw - 1440px) / 2)); border-bottom: 1px solid var(--line); background: var(--ochre-soft); color: var(--ink); }
 .demo-banner strong, .demo-banner span { line-height: 1.35; }
 .demo-banner span { color: var(--muted); font-size: 13px; }

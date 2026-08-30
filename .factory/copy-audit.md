@@ -29,7 +29,7 @@ present.
 | No document cloud and no account. | 6 | Pass |
 | SHA-256 fingerprints travel with the manifest. | 6 | Pass |
 | Plain ZIP, PDF, and full JSON backup are free. | 9 | Pass |
-| Restore an existing license | 4 | Pass |
+| Encrypted exports · $19 once | 4 | Pass |
 | Build a checked evidence packet without uploading your files. | 9 | Pass |
 
 ## Terminology

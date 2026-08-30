@@ -81,6 +81,11 @@ was verified locally with `npm run verify:deployment -- http://127.0.0.1:4173`.
 The release is pushed to the product repository's `main` branch for the
 factory-managed static deployment.
 
+At this handoff the live origin still returns the prior root hash
+`18f27b5b87c809d…52184d554b`, rather than the locally verified repair hash
+above. The source release is pushed and buildable; live propagation remains a
+factory deployment-controller action outside this repository.
+
 No Sociobot API, billing endpoint, unrelated service, secrets, or deployment
 settings were read or contacted. The exact checkout URL and return-token
 capture are covered without following the external link. A real hosted

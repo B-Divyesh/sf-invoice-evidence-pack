@@ -41,7 +41,7 @@ function staticRoutes(): Plugin {
   return {
     name: 'static-route-fallbacks',
     async closeBundle() {
-      for (const route of ['privacy', 'terms']) {
+      for (const route of ['demo', 'privacy', 'terms']) {
         await mkdir(resolve('dist', route), { recursive: true });
         await copyFile(resolve('dist/index.html'), resolve('dist', route, 'index.html'));
       }
@@ -66,7 +66,7 @@ function offlineServiceWorker(): Plugin {
       const builtFiles = (await listFiles(resolve('dist')))
         .filter((path) => !path.endsWith('.map') && path !== '/sw.js' && path !== '/staticwebapp.config.json')
         .sort();
-      const files = ['/', '/privacy/', '/terms/', ...builtFiles];
+      const files = ['/', '/demo/', '/privacy/', '/terms/', ...builtFiles];
       const version = createHash('sha256');
       for (const path of builtFiles) {
         version.update(path);

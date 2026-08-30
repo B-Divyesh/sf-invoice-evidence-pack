@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { buildManifest, createBackup, parseBackup } from '../../src/exports';
+import { buildManifest, createBackup, evidenceArchiveNames, parseBackup } from '../../src/exports';
 import type { Packet } from '../../src/types';
-import { displayBytes, escapeHtml, progressFor, safeFilename, sha256 } from '../../src/utils';
+import { displayBytes, escapeHtml, evidenceSizeAllowed, MAX_EVIDENCE_BYTES, progressFor, safeFilename, sha256 } from '../../src/utils';
 
 function packet(): Packet {
   return {
@@ -37,7 +37,12 @@ describe('packet helpers', () => {
     expect(escapeHtml('<invoice "x">')).toBe('&lt;invoice &quot;x&quot;&gt;');
   });
 
-  it('builds explicit missing flags and redacts filenames', () => {
+  it('@claim:file-size-limit accepts 100 MiB and rejects the next byte', () => {
+    expect(evidenceSizeAllowed(MAX_EVIDENCE_BYTES)).toBe(true);
+    expect(evidenceSizeAllowed(MAX_EVIDENCE_BYTES + 1)).toBe(false);
+  });
+
+  it('@claim:missing-flags @claim:filename-redaction builds explicit missing flags and redacts filenames', () => {
     const manifest = buildManifest(packet(), true);
     expect(manifest.completion).toMatchObject({ complete: false, requiredPresent: 1, requiredTotal: 2 });
     expect(manifest.evidence[0]).toMatchObject({ filename: '01-evidence.pdf', originalFilenameRedacted: true, status: 'present' });
@@ -45,11 +50,30 @@ describe('packet helpers', () => {
     expect(manifest.evidence[2].status).toBe('not-provided-optional');
   });
 
-  it('hashes evidence using SHA-256', async () => {
+  it('@claim:sha256-hash hashes evidence using SHA-256', async () => {
     expect(await sha256(new Blob(['invoice']))).toBe('52d6e3de4fa0dcc29946695f93940c3e7f26f30e1e39f4b1a49ad98839112786');
   });
 
-  it('round-trips files through the owned-data backup', async () => {
+  it('assigns stable case-insensitive archive names to duplicate source filenames', () => {
+    const duplicatePacket = packet();
+    duplicatePacket.items = [
+      { ...duplicatePacket.items[0], id: 'one', fileName: 'proof.pdf' },
+      { ...duplicatePacket.items[0], id: 'two', fileName: 'PROOF.PDF' },
+      { ...duplicatePacket.items[0], id: 'three', fileName: 'proof-2.pdf' },
+      { ...duplicatePacket.items[0], id: 'four', fileName: 'proof.pdf' },
+    ];
+    expect(evidenceArchiveNames(duplicatePacket, false)).toEqual([
+      'proof.pdf',
+      'PROOF-2.pdf',
+      'proof-2-2.pdf',
+      'proof-3.pdf',
+    ]);
+    expect(buildManifest(duplicatePacket, false).evidence.map((item) => item.archiveFilename)).toEqual(
+      evidenceArchiveNames(duplicatePacket, false),
+    );
+  });
+
+  it('@claim:json-backup round-trips files through the owned-data backup', async () => {
     const backup = await createBackup([packet()], []);
     const restored = parseBackup(JSON.stringify(backup));
     expect(await restored.packets[0].items[0].file?.text()).toBe('invoice');

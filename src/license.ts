@@ -7,6 +7,7 @@ const BASE_URL = import.meta.env.VITE_BILLING_BASE_URL || 'https://api.sociobot.
 interface Verdict { valid: boolean; checkedAt: number; reason?: string }
 
 export const checkoutUrl = `${BASE_URL}/products/${SLUG}/checkout`;
+export const checkoutEnabled = import.meta.env.VITE_BILLING_ENABLED === 'true';
 
 export function captureReturnedLicense(): void {
   const url = new URL(location.href);
@@ -46,4 +47,3 @@ export async function verifyLicense(force = false): Promise<{ valid: boolean; re
   localStorage.setItem(VERDICT_KEY, JSON.stringify({ ...result, checkedAt: Date.now() }));
   return result;
 }
-

@@ -1,0 +1,7 @@
+:root { color-scheme: light; font-family: ui-sans-serif, system-ui, sans-serif; background: #f4f0e6; color: #183129; }
+body { min-height: 100vh; margin: 0; display: grid; place-items: center; }
+main { width: min(620px, calc(100% - 40px)); padding: 48px; border: 1px solid #bdc7ba; border-left: 6px solid #285b45; background: #fffcf5; box-shadow: 0 16px 42px rgb(24 49 41 / 10%); }
+p { color: #39765a; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+h1 { max-width: 12em; font: 500 clamp(42px, 8vw, 68px)/1.08 Georgia, serif; letter-spacing: -.025em; }
+a { min-height: 44px; display: inline-flex; align-items: center; color: #285b45; font-weight: 800; text-underline-offset: .2em; }
+a:focus-visible { outline: 3px solid #9b5e12; outline-offset: 3px; }

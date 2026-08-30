@@ -62,6 +62,7 @@ const hashes = {
   root: await assertIdentity('/', 'index.html'),
   serviceWorker: await assertIdentity('/sw.js', 'sw.js'),
   manifest: await assertIdentity('/manifest.webmanifest', 'manifest.webmanifest'),
+  demo: await assertIdentity('/demo/', 'demo/index.html'),
   privacy: await assertIdentity('/privacy/', 'privacy/index.html'),
   terms: await assertIdentity('/terms/', 'terms/index.html'),
 };

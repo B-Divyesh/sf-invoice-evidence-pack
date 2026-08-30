@@ -1,6 +1,9 @@
 import type { Packet, PacketTemplate } from './types';
 
-const DB_NAME = 'invoice-packet';
+const route = typeof location === 'undefined' ? '' : `${location.pathname}${location.search}`;
+const DB_NAME = /(^|\/)demo\/?(?:\?|$)|[?&]demo=1(?:&|$)/.test(route)
+  ? 'demo:invoice-packet'
+  : 'invoice-packet';
 const DB_VERSION = 1;
 const PACKETS = 'packets';
 const TEMPLATES = 'templates';
@@ -70,4 +73,3 @@ export async function replaceAllData(packets: Packet[], templates: PacketTemplat
     transaction.onabort = () => reject(transaction.error ?? new Error('The backup import was cancelled.'));
   });
 }
-

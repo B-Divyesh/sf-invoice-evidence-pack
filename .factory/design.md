@@ -21,6 +21,7 @@ Invoice Packet treats each business event like a field specimen: collected once,
 
 - Headings and packet names: Georgia, Cambria, `Times New Roman`, serif. The organic bracketed serifs evoke printed field manuals without downloading a font.
 - UI, notes, labels, and tables: Inter-compatible system stack (`ui-sans-serif`, `system-ui`, sans-serif). Tabular numerals are enabled for dates, file sizes, and hashes.
+- PDF export embeds local, subset copies of Noto Sans Devanagari and Noto Sans JP so cross-border metadata remains readable and extractable. These functional export fonts are SIL OFL 1.1; details are in `THIRD_PARTY_NOTICES.md`.
 - Scale: 14px specimen labels; 16px body; 20px section title; responsive 30–48px display. Reading measure is capped at 68 characters.
 
 ## Spacing and shape
@@ -52,3 +53,6 @@ Invoice Packet treats each business event like a field specimen: collected once,
 Use case: stylized-concept. Asset type: PWA landing-page hero. Primary request: an editorial botanical field-guide still life that visualizes assembling evidence around one invoice. Scene: top-down open cream archival folio on a warm paper desk, one blank invoice-like sheet held by a brass paper clip, small unprinted evidence tags and translucent file sleeves arranged with a pressed fern, eucalyptus sprig, seed pods, and a magnifying glass. Style: refined gouache and colored-pencil natural-history illustration with crisp cut-paper edges and subtle paper grain, contemporary rather than vintage. Composition: landscape, main folio on the right, breathing room and a few loose leaves on the left for responsive cropping. Light: diffuse northern-window daylight, calm and trustworthy. Palette: warm paper, deep archival green, moss, lichen, restrained ochre and berry. Avoid: readable text, letters, numbers, logos, watermarks, currency symbols, people, hands, screens, photorealism, gradients, clutter, distorted objects, ominous tax imagery.
 
 Generated using the factory image deployment on 2026-08-28 via `/opt/fleet/lib/gen-image.sh`. The image is original to Invoice Packet and used under the project's MIT license. The selected source and exact prompt sidecar live in `assets/src/`; optimized WebP derivatives live in `public/assets/`.
+
+The 1200×630 social card is a centered local crop of the same original hero,
+created with ImageMagick on 2026-08-30. It introduces no new source material.

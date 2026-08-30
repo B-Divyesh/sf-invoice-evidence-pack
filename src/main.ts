@@ -3,8 +3,8 @@ import type { EvidenceItem, Packet, PacketTemplate } from './types';
 import { BUILT_IN_TEMPLATES } from './templates';
 import { listCustomTemplates, listPackets, removePacket, replaceAllData, savePacket, saveTemplate } from './storage';
 import { createBackup, download, exportPdf, exportZip, parseBackup } from './exports';
-import { captureReturnedLicense, checkoutUrl, hasOptimisticLicense, storeLicense, verifyLicense } from './license';
-import { displayBytes, escapeHtml, localDate, nowIso, progressFor, sha256, shortHash } from './utils';
+import { captureReturnedLicense, checkoutEnabled, checkoutUrl, hasOptimisticLicense, storeLicense, verifyLicense } from './license';
+import { displayBytes, escapeHtml, evidenceSizeAllowed, localDate, nowIso, progressFor, sha256, shortHash } from './utils';
 
 const app = document.querySelector<HTMLDivElement>('#app') as HTMLDivElement;
 if (!app) throw new Error('App mount was not found.');
@@ -19,6 +19,8 @@ let licensed = false;
 let online = navigator.onLine;
 let updateWorker: ServiceWorker | undefined;
 let applyingUpdate = false;
+const demoMode = /^\/demo\/?$/.test(location.pathname) || new URLSearchParams(location.search).get('demo') === '1';
+const themeStorageKey = demoMode ? 'demo:invoice-packet-theme' : 'invoice-packet-theme';
 
 function icon(name: 'plus' | 'leaf' | 'file' | 'download' | 'lock' | 'trash' | 'sun' | 'menu'): string {
   const paths = {
@@ -38,7 +40,7 @@ function header(): string {
   return `<header class="site-header">
     <a class="brand" href="/" aria-label="Invoice Packet home"><img src="/icons/mark.svg" width="38" height="38" alt=""><span>Invoice Packet</span></a>
     <nav aria-label="Primary">
-      <a href="/">Packets</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a>
+      <a href="/">Packets</a><a href="/demo/">Demo</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a>
     </nav>
     <div class="header-tools">
       <span class="network ${online ? '' : 'offline'}" role="status"><span></span>${online ? 'Local first' : 'Offline'}</span>
@@ -48,7 +50,7 @@ function header(): string {
 }
 
 function footer(): string {
-  return `<footer><div><strong>Invoice Packet</strong><p>Evidence, collected. Files never leave your device unless you export them.</p></div><div class="footer-links"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-invoice-evidence-pack" target="_blank" rel="noreferrer">Source</a></div><p class="provenance">Botanical artwork generated for this product with the factory image model.</p></footer>`;
+  return `<footer><div><strong>Invoice Packet</strong><p>Build a checked evidence packet without uploading your files.</p></div><div class="footer-links"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-invoice-evidence-pack" target="_blank" rel="noreferrer">Source</a></div><p class="provenance">Built by Param Factory · v1.1.0 · Botanical artwork generated for this product with the factory image model.</p></footer>`;
 }
 
 function legalPage(kind: 'privacy' | 'terms'): string {
@@ -104,9 +106,10 @@ function dialogs(): string {
     <div class="dialog-actions"><button class="button secondary" type="button" data-close-dialog>Cancel</button><button class="button primary" type="submit">Export encrypted ZIP</button></div>
   </form></dialog>
   <dialog id="license-dialog" aria-labelledby="license-title"><form method="dialog" id="license-form">
-    <div class="dialog-head"><div><p class="eyebrow">Field kit upgrade</p><h2 id="license-title">Own the complete toolkit</h2></div><button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button></div>
-    <p><strong>$19, one time.</strong> Unlock AES-256 encrypted ZIP exports and reusable custom checklist templates. No subscription or document upload.</p>
-    <a class="button primary full" href="${checkoutUrl}">Buy the one-time unlock</a>
+    <div class="dialog-head"><div><p class="eyebrow">Optional paid tools</p><h2 id="license-title">Use encrypted exports</h2></div><button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button></div>
+    ${checkoutEnabled
+      ? `<p><strong>$19, one time.</strong> Buy AES-256 encrypted ZIP exports and reusable custom checklist templates. No subscription or document upload.</p><a class="button primary full" href="${checkoutUrl}">Buy the one-time license</a>`
+      : '<p class="billing-paused" role="status"><strong>New purchases are temporarily unavailable.</strong> Free ZIP, PDF, and backup exports still work. Existing licenses can be restored below.</p>'}
     <div class="rule-label"><span>Restore purchase</span></div>
     <label>License token<input name="license" required autocomplete="off" spellcheck="false"></label>
     <p class="form-error" id="license-error" aria-live="polite"></p>
@@ -118,13 +121,16 @@ function dialogs(): string {
 
 function emptyState(): string {
   return `<section class="hero">
-    <div class="hero-copy"><p class="eyebrow">A private field kit for invoice evidence</p><h2>Gather the whole story.<br><em>Once.</em></h2>
-      <p>Collect the invoice, work proof, payment trail, and accountant context around one business event. See what is missing, hash every file, then bind a review-ready packet—without uploading a thing.</p>
-      <div class="hero-actions"><button class="button primary" data-action="new">${icon('plus')} Start your first packet</button><span>No account · Works offline</span></div>
+    <div class="hero-copy"><p class="eyebrow">Private invoice evidence packets</p><h1>Build a complete invoice evidence packet.</h1>
+      <p>For cross-border freelancers and small firms preparing files for an accountant, client, or filing review.</p>
+      <div class="hero-actions"><a class="button primary" href="/demo/">Try it with sample data</a><button class="button secondary" data-action="new">${icon('plus')} Start your first packet</button></div>
+      <p class="action-note">The sample opens a separate workspace. Your own packet starts with a checklist.</p>
+      <ul class="hero-facts"><li>Stored only in this browser</li><li>Works offline after the first visit</li><li>Free ZIP, PDF, and JSON exports</li></ul>
+      <button class="text-button empty-import" data-action="import">${icon('file')} Import backup from another device</button>
     </div>
     <figure class="hero-art"><picture><source srcset="/assets/hero-field-guide-768.webp 768w, /assets/hero-field-guide-1536.webp 1536w" type="image/webp"><img src="/assets/hero-field-guide-768.jpg" width="768" height="512" alt="An open botanical field folio with a blank document, evidence tags, fern specimens, and a magnifying glass" fetchpriority="high" decoding="async"></picture><figcaption><span>Plate 01</span> One invoice, every supporting trace.</figcaption></figure>
   </section>
-  <section class="method" aria-labelledby="method-title"><div><p class="eyebrow">The collecting method</p><h2 id="method-title">A packet your reviewer can follow.</h2></div><ol><li><span>01</span><div><h3>Choose a field list</h3><p>Start from a filing, client-review, or payment-trail checklist. Adapt it to the request you actually received.</p></div></li><li><span>02</span><div><h3>Pin every trace</h3><p>Files stay in this browser. Each attachment receives a SHA-256 fingerprint for later verification.</p></div></li><li><span>03</span><div><h3>Bind and hand over</h3><p>Export the evidence and manifest as ZIP, or produce a compact PDF index for your accountant.</p></div></li></ol></section>`;
+  <section class="method" aria-labelledby="method-title"><div><p class="eyebrow">How it works</p><h2 id="method-title">Prepare one packet in three steps.</h2></div><ol><li><span>01</span><div><h3>Choose a checklist</h3><p>Start with a filing, client review, or payment trail list. Change it to match the request.</p></div></li><li><span>02</span><div><h3>Add the evidence</h3><p>Each file stays in this browser and receives a SHA-256 fingerprint.</p></div></li><li><span>03</span><div><h3>Export the packet</h3><p>Download the evidence and manifest as ZIP, or make a PDF index.</p></div></li></ol></section>`;
 }
 
 function packetList(): string {
@@ -172,17 +178,32 @@ function workspace(): string {
   return `<div class="workspace">${packetList()}${selected ? editor(selected) : ''}</div>`;
 }
 
+function demoBanner(): string {
+  if (!demoMode) return '';
+  return `<aside class="demo-banner" aria-label="Demo status"><strong>Demo — sample data, nothing is saved to your packets</strong><span>Changes stay in this separate demo workspace.</span><div><button class="text-button" data-action="reset-demo">Reset demo</button><button class="button secondary" data-action="start-real">Start for real</button></div></aside>`;
+}
+
+function setRouteMetadata(title: string, pathname: string): void {
+  document.title = title;
+  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', `${location.origin}${pathname}`);
+  document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute('content', title);
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute('content', title);
+}
+
 function render(): void {
   const pathname = location.pathname.replace(/\/+$/, '') || '/';
   if (pathname === '/privacy' || pathname === '/terms') {
+    setRouteMetadata(`${pathname === '/privacy' ? 'Privacy' : 'Terms'} — Invoice Packet`, `${pathname}/`);
     app.innerHTML = legalPage(pathname.slice(1) as 'privacy' | 'terms');
     bindGlobalEvents();
     return;
   }
-  app.innerHTML = `${header()}<main id="main"><h1 class="visually-hidden">Invoice Packet</h1>
+  setRouteMetadata(demoMode ? 'Demo — Invoice Packet' : 'Invoice Packet — build invoice evidence packets', demoMode ? '/demo/' : '/');
+  const hiddenHeading = !loading && !storageError && packets.length === 0 ? '' : '<h1 class="visually-hidden">Build an invoice evidence packet</h1>';
+  app.innerHTML = `${header()}${demoBanner()}<main id="main">${hiddenHeading}
     ${updateWorker ? '<div class="update-note" role="status">A fresh field kit is ready. <button data-action="update-sw">Update now</button></div>' : ''}
     ${loading ? '<div class="loading-state" role="status"><span class="pressed-leaf"></span><p>Opening your field cabinet…</p></div>' : storageError ? `<section class="error-state"><p class="eyebrow">Storage unavailable</p><h2>Your local cabinet could not open.</h2><p>${escapeHtml(storageError)}</p><button class="button secondary" data-action="reload">Reload the app</button></section>` : packets.length ? workspace() : emptyState()}
-    <section class="assurance"><p class="eyebrow">Your papers stay yours</p><div><strong>Stored locally</strong><span>No document cloud and no account.</span></div><div><strong>Verifiable</strong><span>SHA-256 fingerprints travel with the manifest.</span></div><div><strong>Portable</strong><span>Plain ZIP, PDF, and full JSON backup are free.</span></div><button class="text-button" data-action="license">${licensed ? 'Complete toolkit unlocked' : 'Encrypted exports · $19 once'}</button></section>
+    <section class="assurance"><p class="eyebrow">Your papers stay yours</p><div><strong>Stored locally</strong><span>No document cloud and no account.</span></div><div><strong>Verifiable</strong><span>SHA-256 fingerprints travel with the manifest.</span></div><div><strong>Portable</strong><span>Plain ZIP, PDF, and full JSON backup are free.</span></div>${demoMode ? '<span class="demo-paid-note">Paid tools are included in this demo.</span>' : `<button class="text-button" data-action="license">${licensed ? 'Paid tools active' : checkoutEnabled ? 'Encrypted exports · $19 once' : 'Restore an existing license'}</button>`}</section>
   </main>${footer()}${dialogs()}<div class="toast" role="status" aria-live="polite" aria-atomic="true">${escapeHtml(notice)}</div>`;
   bindGlobalEvents();
 }
@@ -223,13 +244,25 @@ async function handleAction(button: HTMLElement): Promise<void> {
   if (action === 'theme') {
     const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
     document.documentElement.dataset.theme = next;
-    localStorage.setItem('invoice-packet-theme', next);
+    localStorage.setItem(themeStorageKey, next);
   }
   if (action === 'select') { selectedId = button.dataset.id || ''; render(); }
   if (action === 'add-item') openDialog('add-item-dialog');
   if (action === 'license') openDialog('license-dialog');
   if (action === 'reload') location.reload();
   if (action === 'update-sw' && updateWorker) { applyingUpdate = true; updateWorker.postMessage({ type: 'SKIP_WAITING' }); }
+  if (action === 'import') document.querySelector<HTMLInputElement>('#backup-input')?.click();
+  if (action === 'reset-demo' && demoMode) {
+    const sample = await createDemoPacket();
+    await replaceAllData([sample], []);
+    packets = [sample]; customTemplates = []; selectedId = sample.id;
+    render(); announce('Demo reset to the original sample packet.');
+  }
+  if (action === 'start-real' && demoMode) {
+    await replaceAllData([], []);
+    location.assign('/');
+    return;
+  }
   const packet = currentPacket();
   if (!packet) return;
   if (action === 'delete' && confirm(`Delete “${packet.title}” and every locally stored attachment? This cannot be undone.`)) {
@@ -282,7 +315,6 @@ async function handleAction(button: HTMLElement): Promise<void> {
       announce('Backup exported. Keep it somewhere safe.');
     } catch { announce('The backup could not be prepared. Check available memory and try again.'); }
   }
-  if (action === 'import') document.querySelector<HTMLInputElement>('#backup-input')?.click();
 }
 
 function bindGlobalEvents(): void {
@@ -299,7 +331,7 @@ function bindGlobalEvents(): void {
   document.querySelectorAll<HTMLInputElement>('input[type="file"][data-item]').forEach((input) => input.addEventListener('change', async () => {
     const packet = currentPacket(); const item = packet?.items.find((row) => row.id === input.dataset.item); const file = input.files?.[0];
     if (!packet || !item || !file) return;
-    if (file.size > 100 * 1024 * 1024) { announce('That file is over the 100 MB per-file limit. Choose a smaller file.'); input.value = ''; return; }
+    if (!evidenceSizeAllowed(file.size)) { announce('That file is over the 100 MB per-file limit. Choose a smaller file.'); input.value = ''; return; }
     announce(`Fingerprinting ${file.name}…`);
     try {
       const hash = await sha256(file);
@@ -387,19 +419,65 @@ async function registerServiceWorker(): Promise<void> {
   } catch { announce('Offline installation is unavailable, but your local packets still work.'); }
 }
 
+async function createDemoPacket(): Promise<Packet> {
+  const at = '2026-08-28T10:30:00.000Z';
+  const sampleFiles = [
+    { name: 'INV-2026-042.txt', type: 'text/plain', contents: 'Invoice INV-2026-042\nKite Studio to Aozora Co.\nUSD 4,800' },
+    { name: 'signed-scope.txt', type: 'text/plain', contents: 'Signed scope\nLocalization design and delivery milestones.' },
+    { name: 'client-acceptance.txt', type: 'text/plain', contents: 'Client acceptance\nFinal files accepted on 27 August 2026.' },
+    { name: 'payment-advice.txt', type: 'text/plain', contents: 'Payment advice\nUSD 4,800 less USD 18 correspondent fee.' },
+  ];
+  const items: EvidenceItem[] = await Promise.all(BUILT_IN_TEMPLATES[0].seeds.map(async (seed, index) => {
+    const sample = sampleFiles[index];
+    if (!sample) return { ...seed, id: `demo-item-${index + 1}` };
+    const file = new Blob([sample.contents], { type: sample.type });
+    return {
+      ...seed,
+      id: `demo-item-${index + 1}`,
+      file,
+      fileName: sample.name,
+      fileType: sample.type,
+      fileSize: file.size,
+      fileModified: Date.parse(at),
+      sha256: await sha256(file),
+    };
+  }));
+  return {
+    id: 'demo-packet-1',
+    title: 'Kite Studio · August client review',
+    invoiceNumber: 'INV-2026-042',
+    client: 'Aozora 株式会社',
+    invoiceDate: '2026-08-24',
+    jurisdiction: 'India GST / Japan client review',
+    currency: 'USD',
+    templateId: BUILT_IN_TEMPLATES[0].id,
+    notes: 'Payment arrived with an USD 18 correspondent-bank fee. Confirm the reporting rate with the accountant.',
+    items,
+    createdAt: at,
+    updatedAt: at,
+    history: [{ at, action: 'Loaded the sample cross-border review' }],
+  };
+}
+
 async function initialize(): Promise<void> {
-  const savedTheme = localStorage.getItem('invoice-packet-theme');
+  const savedTheme = localStorage.getItem(themeStorageKey);
   if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.dataset.theme = savedTheme;
-  captureReturnedLicense(); licensed = hasOptimisticLicense();
+  if (demoMode) licensed = true;
+  else { captureReturnedLicense(); licensed = hasOptimisticLicense(); }
   render();
   window.addEventListener('online', () => { online = true; render(); });
   window.addEventListener('offline', () => { online = false; render(); });
   try {
     [packets, customTemplates] = await Promise.all([listPackets(), listCustomTemplates()]);
+    if (demoMode && packets.length === 0) {
+      const sample = await createDemoPacket();
+      await replaceAllData([sample], []);
+      packets = [sample];
+    }
     selectedId = packets[0]?.id || '';
   } catch (cause) { storageError = cause instanceof Error ? cause.message : 'This browser did not provide persistent local storage.'; }
   loading = false; render(); void registerServiceWorker();
-  if (licensed && navigator.onLine) {
+  if (!demoMode && licensed && navigator.onLine) {
     try { const result = await verifyLicense(); if (!result.valid) { licensed = false; render(); announce('This license is no longer active. Free tools remain available.'); } } catch { /* cached offline access remains */ }
   }
 }

@@ -11,8 +11,30 @@ interface PacketManifest {
   notice: string;
 }
 
+export function evidenceArchiveNames(packet: Packet, redactFilenames: boolean): Array<string | null> {
+  const used = new Set<string>();
+  return packet.items.map((item, index) => {
+    if (!item.fileName) return null;
+    const base = redactFilenames
+      ? redactedName(item, index)
+      : safeFilename(item.fileName, `evidence-${index + 1}`);
+    const extension = extensionOf(base);
+    const stem = extension ? base.slice(0, -extension.length) : base;
+    let candidate = base;
+    let duplicate = 2;
+    while (used.has(candidate.normalize('NFKC').toLocaleLowerCase('en-US'))) {
+      const suffix = `-${duplicate}`;
+      candidate = `${stem.slice(0, Math.max(1, 80 - extension.length - suffix.length))}${suffix}${extension}`;
+      duplicate += 1;
+    }
+    used.add(candidate.normalize('NFKC').toLocaleLowerCase('en-US'));
+    return candidate;
+  });
+}
+
 export function buildManifest(packet: Packet, redactFilenames: boolean): PacketManifest {
   const progress = progressFor(packet);
+  const archiveNames = evidenceArchiveNames(packet, redactFilenames);
   return {
     format: 'invoice-evidence-manifest/v1',
     packet: {
@@ -37,7 +59,8 @@ export function buildManifest(packet: Packet, redactFilenames: boolean): PacketM
       description: item.description,
       required: item.required,
       status: item.file ? 'present' : item.required ? 'missing-required' : 'not-provided-optional',
-      filename: item.fileName ? (redactFilenames ? redactedName(item, index) : item.fileName) : null,
+      filename: item.fileName ? (redactFilenames ? archiveNames[index] : item.fileName) : null,
+      archiveFilename: archiveNames[index],
       originalFilenameRedacted: redactFilenames && Boolean(item.fileName),
       mediaType: item.fileType || null,
       bytes: item.fileSize ?? null,
@@ -67,6 +90,7 @@ export async function exportZip(packet: Packet, redactFilenames: boolean, passwo
   const options = password ? { password, encryptionStrength: 3 as const } : undefined;
   const writer = new ZipWriter(new BlobWriter('application/zip'), options);
   const manifest = buildManifest(packet, redactFilenames);
+  const archiveNames = evidenceArchiveNames(packet, redactFilenames);
   await writer.add('manifest.json', new TextReader(JSON.stringify(manifest, null, 2)));
   await writer.add('README.txt', new TextReader([
     'INVOICE PACKET',
@@ -79,19 +103,15 @@ export async function exportZip(packet: Packet, redactFilenames: boolean, passwo
   ].join('\n')));
   for (const [index, item] of packet.items.entries()) {
     if (!item.file || !item.fileName) continue;
-    const name = redactFilenames ? redactedName(item, index) : safeFilename(item.fileName, `evidence-${index + 1}`);
+    const name = archiveNames[index] as string;
     await writer.add(`evidence/${name}`, new BlobReader(item.file));
   }
   const blob = await writer.close();
   download(blob, `${safeFilename(packet.title)}${password ? '-encrypted' : ''}.zip`);
 }
 
-function latinText(value: string): string {
-  return value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x20-\x7E\xA0-\xFF]/g, '?');
-}
-
 function wrapText(text: string, maxLength: number): string[] {
-  const words = latinText(text).split(/\s+/);
+  const words = text.split(/\s+/);
   const lines: string[] = [];
   let current = '';
   for (const word of words) {
@@ -105,38 +125,69 @@ function wrapText(text: string, maxLength: number): string[] {
 }
 
 export async function exportPdf(packet: Packet, redactFilenames: boolean): Promise<void> {
-  const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
+  await import('regenerator-runtime/runtime.js');
+  const [{ default: fontkit }, { PDFDocument, rgb }] = await Promise.all([
+    import('@pdf-lib/fontkit'),
+    import('pdf-lib'),
+  ]);
   const pdf = await PDFDocument.create();
-  const regular = await pdf.embedFont(StandardFonts.Helvetica);
-  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  pdf.registerFontkit(fontkit);
+  const [baseResponse, japaneseResponse] = await Promise.all([
+    fetch('/assets/noto-sans-devanagari.ttf'),
+    fetch('/assets/noto-sans-jp.ttf'),
+  ]);
+  if (!baseResponse.ok || !japaneseResponse.ok) throw new Error('The PDF text fonts could not be loaded.');
+  const [regular, japanese] = await Promise.all([
+    pdf.embedFont(await baseResponse.arrayBuffer(), { subset: true }),
+    pdf.embedFont(await japaneseResponse.arrayBuffer(), { subset: true }),
+  ]);
+  const baseCharacters = new Set(regular.getCharacterSet());
+  const japaneseCharacters = new Set(japanese.getCharacterSet());
+  const textRuns = (value: string) => {
+    const runs: Array<{ text: string; font: typeof regular }> = [];
+    for (const sourceCharacter of Array.from(value.normalize('NFC'))) {
+      const codePoint = sourceCharacter.codePointAt(0) as number;
+      const character = baseCharacters.has(codePoint) || japaneseCharacters.has(codePoint) ? sourceCharacter : '\uFFFD';
+      const font = baseCharacters.has(codePoint) ? regular : japanese;
+      const last = runs.at(-1);
+      if (last?.font === font) last.text += character;
+      else runs.push({ text: character, font });
+    }
+    return runs;
+  };
   const green = rgb(0.094, 0.192, 0.161);
   const muted = rgb(0.35, 0.42, 0.39);
   let page = pdf.addPage([595, 842]);
   let y = 790;
   const drawLine = (text: string, size = 10, font = regular, color = green, indent = 0) => {
     if (y < 64) { page = pdf.addPage([595, 842]); y = 790; }
-    page.drawText(latinText(text), { x: 48 + indent, y, size, font, color });
+    let x = 48 + indent;
+    for (const run of textRuns(text)) {
+      const runFont = font === regular ? run.font : font;
+      page.drawText(run.text, { x, y, size, font: runFont, color });
+      x += runFont.widthOfTextAtSize(run.text, size);
+    }
     y -= size + 7;
   };
-  drawLine('INVOICE PACKET / MANIFEST', 10, bold, muted);
-  drawLine(packet.title, 23, bold);
+  drawLine('INVOICE PACKET / MANIFEST', 10, regular, muted);
+  drawLine(packet.title, 23, regular);
   y -= 4;
   drawLine(`Invoice: ${packet.invoiceNumber || 'Not recorded'}   Client: ${packet.client || 'Not recorded'}`, 10);
   drawLine(`Date: ${packet.invoiceDate || 'Not recorded'}   Jurisdiction: ${packet.jurisdiction || 'Not specified'}   Currency: ${packet.currency || 'Not specified'}`, 10);
   const progress = progressFor(packet);
-  drawLine(`Completion: ${progress.complete} of ${progress.required} required items (${progress.percent}%)`, 11, bold, progress.missing.length ? rgb(0.61, 0.37, 0.07) : green);
+  drawLine(`Completion: ${progress.complete} of ${progress.required} required items (${progress.percent}%)`, 11, regular, progress.missing.length ? rgb(0.61, 0.37, 0.07) : green);
   y -= 12;
-  drawLine('EVIDENCE INDEX', 11, bold, muted);
+  drawLine('EVIDENCE INDEX', 11, regular, muted);
   packet.items.forEach((item, index) => {
     const state = item.file ? 'PRESENT' : item.required ? 'MISSING / REQUIRED' : 'NOT PROVIDED / OPTIONAL';
-    drawLine(`${String(index + 1).padStart(2, '0')}  ${item.label}  [${state}]`, 10, bold);
+    drawLine(`${String(index + 1).padStart(2, '0')}  ${item.label}  [${state}]`, 10, regular);
     if (item.fileName) drawLine(`File: ${redactFilenames ? redactedName(item, index) : item.fileName}`, 9, regular, muted, 18);
     if (item.sha256) drawLine(`SHA-256: ${item.sha256}`, 8, regular, muted, 18);
     y -= 5;
   });
   if (packet.notes.trim()) {
     y -= 8;
-    drawLine('ACCOUNTANT NOTES', 11, bold, muted);
+    drawLine('ACCOUNTANT NOTES', 11, regular, muted);
     wrapText(packet.notes, 88).forEach((line) => drawLine(line, 10));
   }
   y -= 10;
@@ -192,4 +243,3 @@ export function parseBackup(text: string): { packets: Packet[]; templates: Packe
   }));
   return { packets, templates: Array.isArray(data.templates) ? data.templates : [] };
 }
-

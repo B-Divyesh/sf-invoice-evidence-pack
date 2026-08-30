@@ -1,5 +1,11 @@
 import type { EvidenceItem, Packet } from './types';
 
+export const MAX_EVIDENCE_BYTES = 100 * 1024 * 1024;
+
+export function evidenceSizeAllowed(bytes: number): boolean {
+  return bytes <= MAX_EVIDENCE_BYTES;
+}
+
 export function escapeHtml(value: string): string {
   return value.replace(/[&<>'"]/g, (character) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
@@ -51,4 +57,3 @@ export function nowIso(): string {
 export function localDate(iso: string): string {
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: iso.includes('T') ? 'short' : undefined }).format(new Date(iso));
 }
-

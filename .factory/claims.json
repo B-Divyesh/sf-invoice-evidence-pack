@@ -1,0 +1,93 @@
+[
+  {
+    "id": "demo-sandbox",
+    "claim": "Try the product with realistic sample data in a separate demo workspace.",
+    "where": "landing primary action, demo banner, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:demo-sandbox",
+    "sandbox": "fresh Chromium context; open the landing page; follow the one-click demo link; assert the seeded packet and banner"
+  },
+  {
+    "id": "local-only",
+    "claim": "Packet files stay in the browser unless the user exports them.",
+    "where": "landing facts, assurance strip, privacy page, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:local-only",
+    "sandbox": "fresh Chromium context; record every request while loading the demo and assert there are no third-party requests"
+  },
+  {
+    "id": "sha256-hash",
+    "claim": "Each evidence file receives a SHA-256 fingerprint.",
+    "where": "how it works, editor, README",
+    "test": "npm test -- --testNamePattern @claim:sha256-hash",
+    "sandbox": "hash a known Blob and compare the complete digest with an independent fixed value"
+  },
+  {
+    "id": "file-size-limit",
+    "claim": "Each attached file may be up to and including 100 MiB.",
+    "where": "evidence controls",
+    "test": "npm test -- --testNamePattern @claim:file-size-limit",
+    "sandbox": "evaluate the shared production size predicate at exactly 100 MiB and at 100 MiB plus one byte"
+  },
+  {
+    "id": "missing-flags",
+    "claim": "The manifest flags missing required evidence.",
+    "where": "landing, export summary, README",
+    "test": "npm test -- --testNamePattern @claim:missing-flags",
+    "sandbox": "build a manifest containing present, missing-required, and optional evidence and assert every state"
+  },
+  {
+    "id": "filename-redaction",
+    "claim": "Original filenames can be redacted in exports.",
+    "where": "export controls, README",
+    "test": "npm test -- --testNamePattern @claim:filename-redaction",
+    "sandbox": "build a manifest with redaction enabled and assert the neutral indexed filename and redaction flag"
+  },
+  {
+    "id": "duplicate-zip",
+    "claim": "ZIP export keeps distinct evidence files even when their source filenames match.",
+    "where": "README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:duplicate-zip",
+    "sandbox": "fresh Chromium context; attach different bytes under the same proof.pdf name; download and inspect the ZIP and manifest"
+  },
+  {
+    "id": "unicode-pdf",
+    "claim": "PDF manifests preserve Devanagari and Japanese packet metadata.",
+    "where": "README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:unicode-pdf",
+    "sandbox": "fresh Chromium context; export named Devanagari and Japanese fields; extract PDF text independently and compare all fields"
+  },
+  {
+    "id": "json-backup",
+    "claim": "A full JSON backup retains packet attachments.",
+    "where": "landing facts, editor, README",
+    "test": "npm test -- --testNamePattern @claim:json-backup",
+    "sandbox": "create a backup containing a Blob, parse it into a fresh data structure, and compare its bytes and metadata"
+  },
+  {
+    "id": "backup-import",
+    "claim": "A fresh device can import a JSON backup before creating a packet.",
+    "where": "empty state, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:backup-import",
+    "sandbox": "fresh Chromium context with no packets; use the visible import action and assert the restored packet and success message"
+  },
+  {
+    "id": "offline-reload",
+    "claim": "The app reloads offline after the first successful visit.",
+    "where": "landing facts, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:offline-reload",
+    "sandbox": "fresh Chromium context; wait for service-worker control, set the context offline, reload, and assert the app shell and offline state"
+  },
+  {
+    "id": "aes-zip",
+    "claim": "An existing license provides AES-256 encrypted ZIP export.",
+    "where": "editor, license dialog, terms, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:aes-zip",
+    "sandbox": "isolated demo; export with a test password; inspect the AES extra field strength; decrypt with the correct password and reject a wrong one"
+  },
+  {
+    "id": "custom-templates",
+    "claim": "An existing license can save a checklist as a reusable custom template.",
+    "where": "editor, license dialog, terms, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:custom-templates",
+    "sandbox": "isolated demo; save the current checklist and assert it appears as an option for a new packet"
+  }
+]

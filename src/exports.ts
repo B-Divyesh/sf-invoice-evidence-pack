@@ -11,6 +11,8 @@ interface PacketManifest {
   notice: string;
 }
 
+export const MALFORMED_BACKUP_MESSAGE = 'This backup file is damaged or not valid JSON. Choose an Invoice Packet JSON backup and try again.';
+
 export function evidenceArchiveNames(packet: Packet, redactFilenames: boolean): Array<string | null> {
   const used = new Set<string>();
   return packet.items.map((item, index) => {
@@ -255,7 +257,16 @@ export async function createBackup(packets: Packet[], templates: PacketTemplate[
 }
 
 export function parseBackup(text: string): { packets: Packet[]; templates: PacketTemplate[] } {
-  const data = JSON.parse(text) as AppBackup;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error(MALFORMED_BACKUP_MESSAGE);
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('This is not a supported Invoice Packet backup.');
+  }
+  const data = parsed as AppBackup;
   if (data.format !== 'invoice-packet-backup' || data.version !== 1 || !Array.isArray(data.packets)) {
     throw new Error('This is not a supported Invoice Packet backup.');
   }

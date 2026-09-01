@@ -147,7 +147,7 @@ function evidenceRow(item: EvidenceItem, index: number): string {
   return `<li class="evidence ${item.file ? 'collected' : item.required ? 'missing' : ''}">
     <div class="evidence-number">${String(index + 1).padStart(2, '0')}</div>
     <div class="evidence-body"><div class="evidence-heading"><div><h3>${escapeHtml(item.label)}</h3><p>${escapeHtml(item.description || 'No description added.')}</p></div><span class="status-mark">${item.file ? '✓ Collected' : item.required ? '! Required' : 'Optional'}</span></div>
-    ${item.file ? `<div class="file-slip">${icon('file')}<div><strong>${escapeHtml(item.fileName || 'Evidence file')}</strong><span>${displayBytes(item.fileSize)} · SHA-256 <code title="${item.sha256}">${shortHash(item.sha256)}</code></span></div><label class="mini-button">Replace<input type="file" data-item="${escapeHtml(item.id)}"></label><button class="mini-button danger" data-action="remove-file" data-item="${escapeHtml(item.id)}">Remove</button></div>` : `<div class="collect-slot"><label class="button secondary">${icon('plus')} Add evidence<input type="file" data-item="${escapeHtml(item.id)}"></label><span>Any file · 100 MB maximum</span></div>`}
+    ${item.file ? `<div class="file-slip">${icon('file')}<div><strong>${escapeHtml(item.fileName || 'Evidence file')}</strong><span>${displayBytes(item.fileSize)} · SHA-256 <code title="${item.sha256}">${shortHash(item.sha256)}</code></span></div><label class="mini-button">Replace<input type="file" data-item="${escapeHtml(item.id)}"></label><button class="mini-button danger" data-action="remove-file" data-item="${escapeHtml(item.id)}">Remove</button></div>` : `<div class="collect-slot"><label class="button secondary">${icon('plus')} Add evidence<input type="file" data-item="${escapeHtml(item.id)}"></label><span>Any file · 100 MiB maximum</span></div>`}
     <div class="item-controls"><label class="check-label compact"><input type="checkbox" data-item-required="${escapeHtml(item.id)}" ${item.required ? 'checked' : ''}> Required</label><button class="text-button danger" data-action="remove-item" data-item="${escapeHtml(item.id)}">${icon('trash')} Remove item</button></div></div>
   </li>`;
 }
@@ -331,7 +331,7 @@ function bindGlobalEvents(): void {
   document.querySelectorAll<HTMLInputElement>('input[type="file"][data-item]').forEach((input) => input.addEventListener('change', async () => {
     const packet = currentPacket(); const item = packet?.items.find((row) => row.id === input.dataset.item); const file = input.files?.[0];
     if (!packet || !item || !file) return;
-    if (!evidenceSizeAllowed(file.size)) { announce('That file is over the 100 MB per-file limit. Choose a smaller file.'); input.value = ''; return; }
+    if (!evidenceSizeAllowed(file.size)) { announce('That file is over the 100 MiB per-file limit. Choose a smaller file.'); input.value = ''; return; }
     announce(`Fingerprinting ${file.name}…`);
     try {
       const hash = await sha256(file);

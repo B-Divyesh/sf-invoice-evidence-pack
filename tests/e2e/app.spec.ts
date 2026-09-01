@@ -165,6 +165,31 @@ test('@claim:backup-import imports a backup from the fresh-device empty state', 
   await expect(page.getByText('Backup restored on this device.')).toBeVisible();
 });
 
+test('keeps existing data and gives a recovery step for malformed backup JSON', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Start your first packet' }).click();
+  await page.getByLabel('Packet name Required').fill('Packet kept after failed import');
+  await page.getByRole('button', { name: 'Create packet' }).click();
+
+  const chooserPromise = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Import backup' }).click();
+  const chooser = await chooserPromise;
+  page.once('dialog', (dialog) => dialog.accept());
+  await chooser.setFiles({
+    name: 'damaged-backup.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{not valid'),
+  });
+
+  await expect(page.locator('.toast')).toHaveText(
+    'This backup file is damaged or not valid JSON. Choose an Invoice Packet JSON backup and try again.',
+  );
+  await expect(page.getByText(/Expected property name or/)).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Packet kept after failed import' })).toBeVisible();
+});
+
 test('@claim:unicode-pdf keeps Devanagari and Japanese metadata extractable', async ({ browser }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium');
   await withIsolatedPage(browser, async (page) => {
@@ -395,6 +420,7 @@ test('keeps evidence controls focused, touch-sized, and rejects whitespace-only 
   await packetName.fill('Focus regression packet');
   await page.getByRole('button', { name: 'Create packet' }).click();
   await expect(page.getByRole('heading', { name: 'Focus regression packet' })).toBeVisible();
+  await expect(page.locator('.collect-slot > span').first()).toHaveText('Any file · 100 MiB maximum');
 
   const addItem = page.getByRole('button', { name: 'Add checklist item' });
   await addItem.click();

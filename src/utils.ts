@@ -25,8 +25,8 @@ export function extensionOf(filename: string): string {
 
 export function displayBytes(bytes = 0): string {
   if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KiB`;
+  return `${(bytes / 1024 ** 2).toFixed(1)} MiB`;
 }
 
 export function progressFor(packet: Packet): { complete: number; required: number; percent: number; missing: EvidenceItem[] } {

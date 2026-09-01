@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildManifest, createBackup, evidenceArchiveNames, parseBackup } from '../../src/exports';
+import { buildManifest, createBackup, evidenceArchiveNames, MALFORMED_BACKUP_MESSAGE, parseBackup } from '../../src/exports';
 import type { Packet } from '../../src/types';
 import { displayBytes, escapeHtml, evidenceSizeAllowed, MAX_EVIDENCE_BYTES, progressFor, safeFilename, sha256 } from '../../src/utils';
 
@@ -33,13 +33,14 @@ describe('packet helpers', () => {
 
   it('makes safe portable filenames and readable sizes', () => {
     expect(safeFilename('Acme / INV 042')).toBe('Acme-INV-042');
-    expect(displayBytes(1_536)).toBe('1.5 KB');
+    expect(displayBytes(1_536)).toBe('1.5 KiB');
     expect(escapeHtml('<invoice "x">')).toBe('&lt;invoice &quot;x&quot;&gt;');
   });
 
   it('@claim:file-size-limit accepts 100 MiB and rejects the next byte', () => {
     expect(evidenceSizeAllowed(MAX_EVIDENCE_BYTES)).toBe(true);
     expect(evidenceSizeAllowed(MAX_EVIDENCE_BYTES + 1)).toBe(false);
+    expect(displayBytes(MAX_EVIDENCE_BYTES)).toBe('100.0 MiB');
   });
 
   it('@claim:missing-flags @claim:filename-redaction builds explicit missing flags and redacts filenames', () => {
@@ -78,5 +79,9 @@ describe('packet helpers', () => {
     const restored = parseBackup(JSON.stringify(backup));
     expect(await restored.packets[0].items[0].file?.text()).toBe('invoice');
     expect(restored.packets[0].client).toBe('Acme & Co');
+  });
+
+  it('gives a plain recovery step for malformed backup JSON', () => {
+    expect(() => parseBackup('{not valid')).toThrow(MALFORMED_BACKUP_MESSAGE);
   });
 });

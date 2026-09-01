@@ -1,4 +1,7 @@
 import { chromium } from 'playwright';
+import { open, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -26,8 +29,13 @@ const active = await page.evaluate(() => { const element = document.activeElemen
 const focusLostAfterAutosave = active.tag === 'BODY';
 await page.locator('input[type="file"][data-item]').first().setInputFiles({ name: 'invoice-000.txt', mimeType: 'text/plain', buffer: Buffer.from('normal representative evidence') });
 await page.getByText('Evidence stored locally and fingerprinted.').waitFor();
-await page.locator('input[type="file"][data-item]').nth(1).setInputFiles('/tmp/invoice-too-large.bin');
-await page.getByText('That file is over the 100 MB per-file limit. Choose a smaller file.').waitFor();
+const oversizedFixture = join(tmpdir(), `invoice-too-large-${process.pid}.bin`);
+const oversizedHandle = await open(oversizedFixture, 'w');
+await oversizedHandle.truncate(100 * 1024 * 1024 + 1);
+await oversizedHandle.close();
+await page.locator('input[type="file"][data-item]').nth(1).setInputFiles(oversizedFixture);
+await rm(oversizedFixture, { force: true });
+await page.getByText('That file is over the 100 MiB per-file limit. Choose a smaller file.').waitFor();
 let confirmText = '';
 page.once('dialog', dialog => { confirmText = dialog.message(); return dialog.dismiss(); });
 await page.getByRole('button', { name: 'Export ZIP packet' }).click();

@@ -1,3 +1,23 @@
+# Invoice Packet verification-9 handoff — 2026-09-01
+
+## Independent verification outcome
+
+**FAIL — do not release this candidate.** Independent QA of
+`dea5d91173d777429844f517937615fe53916ff2` at
+<https://invoice-evidence-pack.sociobot.in> found two `h1` elements after
+opening `/demo/`: a hidden `Invoice Packet` heading and visible `Your packets`
+heading. This fails the one-`h1` accessibility contract on desktop and 390px
+mobile. The full evidence and required corrective action are in
+[`verification-9.md`](verification-9.md).
+
+All declared claim commands, clean-install tests, TypeScript check, build,
+full 48-test browser matrix, 96-test repeat matrix, deployment byte identity,
+privacy request review, PWA offline reload, and axe serious/critical checks
+otherwise passed. The candidate is deployed, but it needs the duplicate-heading
+correction and a fresh independent verification before release.
+
+---
+
 # Invoice Packet polish-1 handoff — 2026-09-01
 
 ## Outcome

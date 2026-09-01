@@ -91,11 +91,18 @@
     "sandbox": "isolated demo; save the current checklist and assert it appears as an option for a new packet"
   },
   {
-    "id": "one-time-checkout",
-    "claim": "A $19 one-time hosted checkout is available for encrypted ZIPs and reusable custom templates.",
-    "where": "license dialog, assurance strip, terms, README",
-    "test": "npm run test:e2e -- --project=chromium --grep @claim:one-time-checkout",
-    "sandbox": "fresh Chromium context; open the license dialog and assert the exact registered hosted checkout URL and visible restore action"
+    "id": "license-restore",
+    "claim": "An existing license can be restored by pasting its token.",
+    "where": "license dialog, terms, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:license-restore",
+    "sandbox": "fresh Chromium context; assert the operator-gated build has no checkout link, paste a fixture token, intercept its verification response, and observe paid tools unlock"
+  },
+  {
+    "id": "checkout-operator-gate",
+    "claim": "New checkout is hidden in the default operator-gated build.",
+    "where": "license dialog, privacy page, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:checkout-operator-gate",
+    "sandbox": "fresh Chromium context; open the license dialog and assert the unavailable notice and absence of a hosted-checkout link"
   },
   {
     "id": "configurable-checklists",
@@ -124,5 +131,19 @@
     "where": "landing facts, assurance strip, README",
     "test": "npm run test:e2e -- --project=chromium --grep @claim:free-exports",
     "sandbox": "fresh Chromium context; create a packet and observe ZIP, PDF, and JSON backup downloads without a license"
+  },
+  {
+    "id": "core-no-setup",
+    "claim": "Create and export a packet without an API key or external service.",
+    "where": "README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:core-no-setup",
+    "sandbox": "fresh Chromium context; create a packet, attach a fixture file, export a ZIP, and assert no external request occurs"
+  },
+  {
+    "id": "license-verification-minimum-data",
+    "claim": "License verification sends the license token, not packet files or filenames.",
+    "where": "privacy page, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:license-verification-minimum-data",
+    "sandbox": "fresh Chromium context; intercept a fixture license verification request and assert its URL has only the license parameter and its body is empty"
   }
 ]

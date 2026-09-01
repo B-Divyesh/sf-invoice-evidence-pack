@@ -40,7 +40,7 @@ function header(): string {
   return `<header class="site-header">
     <a class="brand" href="/" aria-label="Invoice Packet home"><img src="/icons/mark.svg" width="38" height="38" alt=""><span>Invoice Packet</span></a>
     <nav aria-label="Primary">
-      <a href="/">Packets</a><a href="/demo/">Demo</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a>
+      <a href="/" data-route>Packets</a><a href="/demo/">Demo</a><a href="/privacy/" data-route>Privacy</a><a href="/terms/" data-route>Terms</a>
     </nav>
     <div class="header-tools">
       <span class="network ${online ? '' : 'offline'}" role="status"><span></span>${online ? 'Local first' : 'Offline'}</span>
@@ -50,23 +50,23 @@ function header(): string {
 }
 
 function footer(): string {
-  return `<footer><div><strong>Invoice Packet</strong><p>Build a checked evidence packet without uploading your files.</p></div><div class="footer-links"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-invoice-evidence-pack" target="_blank" rel="noreferrer">Source</a></div><p class="provenance">Built by Param Factory · v1.1.0 · Botanical artwork generated for this product with the factory image model.</p></footer>`;
+  return `<footer><div><strong>Invoice Packet</strong><p>Build a checked evidence packet without uploading your files.</p></div><div class="footer-links"><a href="/privacy/" data-route>Privacy</a><a href="/terms/" data-route>Terms</a><a href="https://github.com/B-Divyesh/sf-invoice-evidence-pack" target="_blank" rel="noreferrer">Source</a></div><p class="provenance">Built by Param Factory · v1.1.0</p></footer>`;
 }
 
 function legalPage(kind: 'privacy' | 'terms'): string {
-  const privacy = `<p class="eyebrow">Privacy note · effective 28 August 2026</p><h1>Private by construction.</h1>
+  const privacy = `<p class="eyebrow">Privacy note · effective 28 August 2026</p><h1 id="route-heading" tabindex="-1">Private by construction.</h1>
     <p class="lede">Invoice Packet is a local-first tool. Your invoices, evidence files, notes, and packet records stay in your browser's IndexedDB until you delete them or export them.</p>
     <h2>What stays on your device</h2><p>Packet details, attachments, file hashes, custom templates, settings, and license tokens are stored locally. We do not operate document storage or analytics for this app.</p>
-    <h2>When data leaves</h2><p>Only two deliberate actions can send data elsewhere: following the checkout link, or verifying a license token with the Sociobot billing API. Verification sends the license token—not packet contents or filenames. Exported files go only to the location you choose.</p>
+    <h2>When data leaves</h2><p>Exported files go only to the location you choose. License verification sends the license token, not packet contents or filenames.</p>
     <h2>Your controls</h2><p>Use “Back up all data” before clearing browser storage or changing devices. Deleting a packet removes its local record and files. Clearing site data removes everything, including the saved license token.</p>
-    <h2>Payments</h2><p>Sociobot/Dodo is the merchant of record. Its checkout privacy terms apply to payment information; this app never sees card details.</p>`;
-  const terms = `<p class="eyebrow">Terms · effective 28 August 2026</p><h1>A careful tool, not an adviser.</h1>
+    <h2>License purchases</h2><p>New license purchases are not available in this build. You can restore an existing license by pasting its token.</p>`;
+  const terms = `<p class="eyebrow">Terms · effective 28 August 2026</p><h1 id="route-heading" tabindex="-1">A careful tool, not an adviser.</h1>
     <p class="lede">Invoice Packet helps organize evidence. It does not provide legal, tax, accounting, foreign-exchange, or filing advice, and it does not submit anything to an authority.</p>
     <h2>Your responsibility</h2><p>You decide which checklist applies, verify packet contents, keep backups, use suitable passwords, and obtain professional advice for your jurisdiction. A “complete” label means only that every item you marked required has a file.</p>
-    <h2>One-time license</h2><p>The $19 one-time unlock enables reusable custom templates and encrypted ZIP exports for this product. Core packet building, hashing, JSON backup, plain ZIP, and PDF manifests remain free. Sociobot/Dodo is the merchant of record and handles payment and refunds. A refund or charge reversal revokes the license.</p>
+    <h2>License features</h2><p>An existing license enables reusable custom templates and encrypted ZIP exports. Core packet building, hashing, JSON backup, plain ZIP, and PDF manifests remain free. Sociobot/Dodo is the merchant of record and handles payment and refunds. A refund or charge reversal revokes the license.</p>
     <h2>Software and availability</h2><p>The software is provided “as is,” without warranties. Browser storage can be cleared by device policy or user action, so keep independent backups. License verification may be temporarily unavailable offline; a recent valid verdict continues optimistically.</p>
     <h2>Acceptable use</h2><p>Do not use the service or billing endpoint unlawfully, attempt to defeat license checks, or package malicious files for others.</p>`;
-  return `${header()}<main id="main" class="legal"><article>${kind === 'privacy' ? privacy : terms}<p><a class="text-link" href="/">Return to your packets</a></p></article></main>${footer()}`;
+  return `${header()}<main id="main" class="legal"><article>${kind === 'privacy' ? privacy : terms}<p><a class="text-link" href="/" data-route>Return to your packets</a></p></article></main>${footer()}`;
 }
 
 function allTemplates(): PacketTemplate[] {
@@ -108,8 +108,8 @@ function dialogs(): string {
   <dialog id="license-dialog" aria-labelledby="license-title"><form method="dialog" id="license-form">
     <div class="dialog-head"><div><p class="eyebrow">Optional paid tools</p><h2 id="license-title">Use encrypted exports</h2></div><button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button></div>
     ${checkoutEnabled
-      ? `<p><strong>$19, one time.</strong> Buy AES-256 encrypted ZIP exports and reusable custom checklist templates. No subscription or document upload.</p><a class="button primary full" href="${checkoutUrl}">Buy the one-time license</a>`
-      : '<p class="billing-paused" role="status"><strong>New purchases are temporarily unavailable.</strong> Free ZIP, PDF, and backup exports still work. Existing licenses can be restored below.</p>'}
+      ? `<p><strong>$19, one time.</strong> Buy AES-256 encrypted ZIP exports and reusable custom checklist templates. No subscription or document upload.</p><a class="button primary full" href="${checkoutUrl}">Open hosted checkout</a>`
+      : '<p class="billing-paused" role="status"><strong>New license purchases are not available in this build.</strong> Free ZIP, PDF, and backup exports still work. Paste an existing license below.</p>'}
     <div class="rule-label"><span>Restore purchase</span></div>
     <label>License token<input name="license" required autocomplete="off" spellcheck="false"></label>
     <p class="form-error" id="license-error" aria-live="polite"></p>
@@ -121,20 +121,20 @@ function dialogs(): string {
 
 function emptyState(): string {
   return `<section class="hero">
-    <div class="hero-copy"><p class="eyebrow">Private invoice evidence packets</p><h1>Build a complete invoice evidence packet.</h1>
+    <div class="hero-copy"><p class="eyebrow">Private invoice evidence packets</p><h1 id="route-heading" tabindex="-1">Build a complete invoice evidence packet.</h1>
       <p>For cross-border freelancers and small firms preparing files for an accountant, client, or filing review.</p>
       <div class="hero-actions"><a class="button primary" href="/demo/">Try it with sample data</a><button class="button secondary" data-action="new">${icon('plus')} Start your first packet</button></div>
       <p class="action-note">The sample opens a separate workspace. Your own packet starts with a checklist.</p>
       <ul class="hero-facts"><li>Stored only in this browser</li><li>Works offline after the first visit</li><li>Free ZIP, PDF, and JSON exports</li></ul>
       <button class="text-button empty-import" data-action="import">${icon('file')} Import backup from another device</button>
     </div>
-    <figure class="hero-art"><picture><source srcset="/assets/hero-field-guide-768.webp 768w, /assets/hero-field-guide-1536.webp 1536w" type="image/webp"><img src="/assets/hero-field-guide-768.jpg" width="768" height="512" alt="An open botanical field folio with a blank document, evidence tags, fern specimens, and a magnifying glass" fetchpriority="high" decoding="async"></picture><figcaption><span>Plate 01</span> One invoice, every supporting trace.</figcaption></figure>
+    <figure class="hero-art"><picture><source srcset="/assets/hero-field-guide-768.webp 768w, /assets/hero-field-guide-1536.webp 1536w" type="image/webp"><img src="/assets/hero-field-guide-768.jpg" width="768" height="512" alt="An open botanical field folio with a blank document, evidence tags, fern specimens, and a magnifying glass" fetchpriority="high" decoding="async"></picture><figcaption><span>Plate 01</span> One packet groups an invoice with its supporting evidence.</figcaption></figure>
   </section>
   <section class="method" aria-labelledby="method-title"><div><p class="eyebrow">How it works</p><h2 id="method-title">Prepare one packet in three steps.</h2></div><ol><li><span>01</span><div><h3>Choose a checklist</h3><p>Start with a filing, client review, or payment trail list. Change it to match the request.</p></div></li><li><span>02</span><div><h3>Add the evidence</h3><p>Each file stays in this browser and receives a SHA-256 fingerprint.</p></div></li><li><span>03</span><div><h3>Export the packet</h3><p>Download the evidence and manifest as ZIP, or make a PDF index.</p></div></li></ol></section>`;
 }
 
 function packetList(): string {
-  return `<aside class="packet-nav" aria-label="Saved packets"><div class="aside-title"><div><p class="eyebrow">Field cabinet</p><h2>Your packets</h2></div><button class="icon-button bordered" data-action="new" aria-label="Create packet">${icon('plus')}</button></div>
+  return `<aside class="packet-nav" aria-label="Saved packets"><div class="aside-title"><div><p class="eyebrow">Field cabinet</p><h1 id="route-heading" tabindex="-1">Your packets</h1></div><button class="icon-button bordered" data-action="new" aria-label="Create packet">${icon('plus')}</button></div>
     <div class="packet-list">${packets.map((packet) => {
       const progress = progressFor(packet);
       return `<button class="packet-tab ${packet.id === selectedId ? 'active' : ''}" data-action="select" data-id="${escapeHtml(packet.id)}" aria-current="${packet.id === selectedId ? 'true' : 'false'}"><span><strong>${escapeHtml(packet.title)}</strong><small>${escapeHtml(packet.invoiceNumber || 'No invoice number')} · ${progress.percent}% complete</small></span><span class="specimen-no">${String(packets.indexOf(packet) + 1).padStart(2, '0')}</span></button>`;
@@ -183,29 +183,60 @@ function demoBanner(): string {
   return `<aside class="demo-banner" aria-label="Demo status"><strong>Demo — sample data, nothing is saved to your packets</strong><span>Changes stay in this separate demo workspace.</span><div><button class="text-button" data-action="reset-demo">Reset demo</button><button class="button secondary" data-action="start-real">Start for real</button></div></aside>`;
 }
 
-function setRouteMetadata(title: string, pathname: string): void {
+function setRouteMetadata(title: string, pathname: string, description: string): void {
   document.title = title;
-  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', `${location.origin}${pathname}`);
+  const canonical = `${location.origin}${pathname}`;
+  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', canonical);
+  document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', description);
   document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute('content', title);
+  document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute('content', description);
+  document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.setAttribute('content', canonical);
   document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute('content', title);
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.setAttribute('content', description);
 }
 
-function render(): void {
+function focusRouteHeading(): void {
+  const heading = document.querySelector<HTMLElement>('#route-heading');
+  if (!heading) return;
+  heading.focus({ preventScroll: true });
+  const announcement = document.querySelector<HTMLElement>('#route-announcement');
+  if (announcement) announcement.textContent = `Opened ${heading.textContent?.trim() || 'page'}`;
+}
+
+function render(routeChanged = false): void {
   const pathname = location.pathname.replace(/\/+$/, '') || '/';
   if (pathname === '/privacy' || pathname === '/terms') {
-    setRouteMetadata(`${pathname === '/privacy' ? 'Privacy' : 'Terms'} — Invoice Packet`, `${pathname}/`);
+    const privacy = pathname === '/privacy';
+    setRouteMetadata(
+      `${privacy ? 'Privacy' : 'Terms'} — Invoice Packet`,
+      `${pathname}/`,
+      privacy ? 'See how Invoice Packet stores and handles packet data.' : 'Read the Invoice Packet terms and license conditions.',
+    );
     app.innerHTML = legalPage(pathname.slice(1) as 'privacy' | 'terms');
     bindGlobalEvents();
+    if (routeChanged) focusRouteHeading();
     return;
   }
-  setRouteMetadata(demoMode ? 'Demo — Invoice Packet' : 'Invoice Packet — build invoice evidence packets', demoMode ? '/demo/' : '/');
-  const hiddenHeading = !loading && !storageError && packets.length === 0 ? '' : '<h1 class="visually-hidden">Build an invoice evidence packet</h1>';
+  setRouteMetadata(
+    demoMode ? 'Demo — Invoice Packet' : 'Invoice Packet — build invoice evidence packets',
+    demoMode ? '/demo/' : '/',
+    demoMode ? 'Try Invoice Packet with sample data in a separate workspace.' : 'Build a checked invoice evidence packet with local files, hashes, missing-item flags, ZIP, PDF, and backup export.',
+  );
+  const hiddenHeading = !loading && !storageError && packets.length === 0 ? '' : '<h1 id="route-heading" tabindex="-1" class="visually-hidden">Invoice Packet</h1>';
   app.innerHTML = `${header()}${demoBanner()}<main id="main">${hiddenHeading}
     ${updateWorker ? '<div class="update-note" role="status">A fresh field kit is ready. <button data-action="update-sw">Update now</button></div>' : ''}
     ${loading ? '<div class="loading-state" role="status"><span class="pressed-leaf"></span><p>Opening your field cabinet…</p></div>' : storageError ? `<section class="error-state"><p class="eyebrow">Storage unavailable</p><h2>Your local cabinet could not open.</h2><p>${escapeHtml(storageError)}</p><button class="button secondary" data-action="reload">Reload the app</button></section>` : packets.length ? workspace() : emptyState()}
-    <section class="assurance"><p class="eyebrow">Your papers stay yours</p><div><strong>Stored locally</strong><span>No document cloud and no account.</span></div><div><strong>Verifiable</strong><span>SHA-256 fingerprints travel with the manifest.</span></div><div><strong>Portable</strong><span>Plain ZIP, PDF, and full JSON backup are free.</span></div>${demoMode ? '<span class="demo-paid-note">Paid tools are included in this demo.</span>' : `<button class="text-button" data-action="license">${licensed ? 'Paid tools active' : checkoutEnabled ? 'Encrypted exports · $19 once' : 'Restore an existing license'}</button>`}</section>
+    <section class="assurance"><p class="eyebrow">Storage and export privacy</p><div><strong>Stored locally</strong><span>No document cloud and no account.</span></div><div><strong>File fingerprints in each manifest</strong><span>SHA-256 fingerprints travel with the manifest.</span></div><div><strong>Download ZIP, PDF, or JSON backup</strong><span>Plain ZIP, PDF, and full JSON backup are free.</span></div>${demoMode ? '<span class="demo-paid-note">Paid tools are included in this demo.</span>' : `<button class="text-button" data-action="license">${licensed ? 'Paid tools active' : checkoutEnabled ? 'View encrypted-export options' : 'Restore an existing license'}</button>`}</section>
   </main>${footer()}${dialogs()}<div class="toast" role="status" aria-live="polite" aria-atomic="true">${escapeHtml(notice)}</div>`;
   bindGlobalEvents();
+  if (routeChanged) focusRouteHeading();
+}
+
+function navigate(pathname: string): void {
+  const next = new URL(pathname, location.origin);
+  if (next.pathname === location.pathname && next.search === location.search && next.hash === location.hash) return;
+  history.pushState({}, '', `${next.pathname}${next.search}${next.hash}`);
+  render(true);
 }
 
 function currentPacket(): Packet | undefined {
@@ -318,6 +349,11 @@ async function handleAction(button: HTMLElement): Promise<void> {
 }
 
 function bindGlobalEvents(): void {
+  document.querySelectorAll<HTMLAnchorElement>('a[data-route]').forEach((link) => link.addEventListener('click', (event) => {
+    if (demoMode || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    navigate(link.href);
+  }));
   document.querySelectorAll<HTMLElement>('[data-action]').forEach((element) => element.addEventListener('click', () => void handleAction(element)));
   document.querySelectorAll<HTMLButtonElement>('[data-close-dialog]').forEach((button) => button.addEventListener('click', () => button.closest('dialog')?.close()));
   document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[data-field]').forEach((input) => input.addEventListener('change', async () => {
@@ -465,6 +501,7 @@ async function initialize(): Promise<void> {
   if (demoMode) licensed = true;
   else { captureReturnedLicense(); licensed = hasOptimisticLicense(); }
   render();
+  if (!demoMode) window.addEventListener('popstate', () => render(true));
   window.addEventListener('online', () => { online = true; render(); });
   window.addEventListener('offline', () => { online = false; render(); });
   try {

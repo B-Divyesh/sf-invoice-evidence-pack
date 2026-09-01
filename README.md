@@ -1,6 +1,6 @@
 # Invoice Packet
 
-Invoice Packet is a private, offline-first evidence pack builder for cross-border freelancers and tiny firms. It gathers the invoice, proof of work, payment records, and reviewer notes around one business event, fingerprints every attached file, flags missing requirements, and exports a review-ready ZIP or PDF manifest.
+Create one invoice packet for a client review or filing. Add evidence files, check what is missing, and export a ZIP or PDF manifest.
 
 Live product: <https://invoice-evidence-pack.sociobot.in>
 
@@ -8,20 +8,20 @@ Try the isolated sample workspace: <https://invoice-evidence-pack.sociobot.in/de
 
 ## What it does
 
-- Starts from configurable cross-border filing, client review, or payment-trail checklists.
-- Stores packets and file blobs in browser IndexedDB; there is no document backend or analytics.
-- Computes SHA-256 fingerprints locally and includes them in an explicit evidence manifest.
-- Exports plain ZIP packets, PDF manifests, and complete JSON backups for free.
-- Keeps distinct ZIP entries when source files share a filename.
-- Preserves Devanagari and Japanese packet metadata in PDF text.
-- Redacts original filenames when requested.
-- Imports complete JSON backups onto another browser.
-- Installs as a standalone PWA and reloads after the first successful visit without a network connection.
-- Restores existing licenses for AES-256 encrypted ZIPs and reusable custom templates.
+- Start from a cross-border filing, client review, or payment-trail checklist.
+- Store packets and files in this browser. It does not upload packet files or use analytics.
+- Create a SHA-256 fingerprint for each evidence file and include it in the manifest.
+- Export plain ZIP packets, PDF manifests, and full JSON backups for free.
+- Keep distinct ZIP entries when evidence files share a filename.
+- Preserve Devanagari and Japanese packet metadata in PDF text.
+- Redact original filenames in exports when requested.
+- Import a complete JSON backup on another browser.
+- Install the app and reopen it offline after your first visit.
+- Restore an existing license for encrypted ZIPs and reusable checklist templates.
 
-The $19 one-time checkout unlocks AES-256 encrypted ZIPs and reusable custom templates. The free workflow never waits for billing.
+ZIP, PDF, and JSON backup exports work without a license.
 
-“Complete” means only that all items marked required have an attachment. The product is jurisdiction-configurable and does not provide tax or legal advice or submit filings.
+“Complete” means every required item has an attachment. Choose and edit a checklist for your review. Invoice Packet does not give tax or legal advice, or submit filings.
 
 ## Run locally
 
@@ -32,7 +32,7 @@ npm ci
 npm run dev
 ```
 
-Vite prints the local URL. No API key or external service is needed for the core product.
+Vite prints the local URL. Create and export a packet without an API key or external service.
 
 ## Test and build
 
@@ -42,21 +42,23 @@ npm run build
 npm run test:e2e
 ```
 
-The exact production build command is `npm run build`. Output lands in `dist/`, with `dist/index.html` at its root. End-to-end tests use Playwright 1.58.2 and cover desktop Chromium, a 390px mobile Chromium viewport, local persistence, ZIP download, serious/critical axe checks in both themes, legal routes, and a service-worker-backed offline reload.
+The production build command is `npm run build`. Output lands in `dist/`, with `dist/index.html` at its root. End-to-end tests use Playwright 1.58.2 on desktop and 390px Chromium. They check persistence, downloads, accessibility, legal routes, and offline reload.
 
-To point a staging build at the staging billing engine:
+## Checkout configuration
+
+New-license checkout is disabled by default. An operator enables it only after testing the registered hosted checkout.
 
 ```sh
-VITE_BILLING_BASE_URL=https://pilot-api.sociobot.in/api/v1 npm run build
+VITE_CHECKOUT_ENABLED=true npm run build
 ```
 
-Production defaults to `https://api.sociobot.in/api/v1`. The product slug is used by the billing contract; no provider product ID or secret is embedded.
+The product uses the billing product slug. It does not contain a payment-provider key or product ID.
 
 ## Deployment
 
-Deploy `dist/` as a static site. The build emits directory fallbacks for `/privacy/` and `/terms/`, a generated content-versioned service-worker precache, and `staticwebapp.config.json` with the required cache, MIME, CSP, permissions, framing, and cross-origin policies. The factory owns DNS and infrastructure.
+Deploy `dist/` as a static site. The build includes Privacy and Terms routes and a versioned offline cache. `staticwebapp.config.json` supplies the static hosting headers. The factory owns DNS and infrastructure.
 
-After deployment, verify both response policy and byte identity against the local build:
+After deployment, verify response policy and byte identity against the local build:
 
 ```sh
 npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
@@ -64,11 +66,11 @@ npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
 
 ## Privacy and data recovery
 
-Files never leave the device unless the user deliberately exports them. Browser/site-data clearing can remove IndexedDB, so the UI offers “Back up all data” as a portable JSON file. License verification sends only the license token to Sociobot. See the in-product privacy and terms pages for the full plain-language policy.
+Files stay on the device unless the user exports them. Browser data clearing can remove local storage, so use “Back up all data” before clearing it. License verification sends the license token, not packet files or filenames. See the in-product Privacy and Terms pages for details.
 
 ## Design and provenance
 
-The botanical field-guide visual system and generated-art provenance are documented in [`.factory/design.md`](.factory/design.md). The source illustration and prompt sidecar live under `assets/src/`; optimized runtime assets live under `public/assets/`. PDF export font licenses are recorded in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+The botanical field-guide visual system and artwork provenance are documented in [`.factory/design.md`](.factory/design.md). The source illustration and prompt sidecar live under `assets/src/`. Optimized runtime assets live under `public/assets/`. PDF export font licenses are recorded in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ## License
 

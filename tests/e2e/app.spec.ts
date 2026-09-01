@@ -1,6 +1,7 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { BlobReader, TextWriter, ZipReader } from '@zip.js/zip.js';
 
 const ORIGIN = 'http://127.0.0.1:4173';
@@ -254,19 +255,61 @@ test('loads full local script fonts only for uncommon PDF metadata', async ({ br
   });
 });
 
-test('@claim:one-time-checkout offers the hosted one-time license checkout', async ({ page }, testInfo) => {
+test('@claim:license-restore @claim:checkout-operator-gate keeps checkout operator-gated and restores an existing license', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium');
   await page.goto('/');
-  await page.getByRole('button', { name: 'Encrypted exports · $19 once' }).click();
-  await expect(page.getByRole('link', { name: 'Buy the one-time license' })).toHaveAttribute(
-    'href',
-    'https://api.sociobot.in/api/v1/products/invoice-evidence-pack/checkout',
-  );
+  await page.getByRole('button', { name: 'Restore an existing license' }).click();
+  await expect(page.getByText('New license purchases are not available in this build.')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Open hosted checkout' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Verify and restore' })).toBeVisible();
-  await page.route('https://api.sociobot.in/api/v1/products/invoice-evidence-pack/verify?license=returned-license', (route) => route.abort());
-  await page.goto('/?license=returned-license');
-  await expect(page).toHaveURL(/\/$/);
-  expect(await page.evaluate(() => localStorage.getItem('sb_license:invoice-evidence-pack'))).toBe('returned-license');
+  await page.route('**/products/invoice-evidence-pack/verify?license=existing-license', (route) => route.fulfill({
+    contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok' }),
+  }));
+  await page.getByLabel('License token').fill('existing-license');
+  await page.getByRole('button', { name: 'Verify and restore' }).click();
+  await expect(page.getByRole('button', { name: 'Paid tools active' })).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem('sb_license:invoice-evidence-pack'))).toBe('existing-license');
+});
+
+test('@claim:core-no-setup creates and exports a packet without external requests', async ({ browser }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  await withIsolatedPage(browser, async (page) => {
+    const externalRequests: string[] = [];
+    page.on('request', (request) => {
+      const url = new URL(request.url());
+      if (url.origin !== ORIGIN && url.protocol !== 'blob:') externalRequests.push(request.url());
+    });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Start your first packet' }).click();
+    await page.getByLabel('Packet name Required').fill('No setup packet');
+    await page.getByRole('button', { name: 'Create packet' }).click();
+    await page.locator('input[type="file"][data-item]').first().setInputFiles({
+      name: 'local-proof.txt', mimeType: 'text/plain', buffer: Buffer.from('fixture evidence'),
+    });
+    page.once('dialog', (dialog) => dialog.accept());
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export ZIP packet' }).click();
+    await expect((await download).suggestedFilename()).toBe('No-setup-packet.zip');
+    expect(externalRequests).toEqual([]);
+  });
+});
+
+test('@claim:license-verification-minimum-data sends only the fixture license token', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  let requestUrl = '';
+  let requestBody: string | null = null;
+  await page.route('**/products/invoice-evidence-pack/verify?license=privacy-fixture', (route) => {
+    requestUrl = route.request().url();
+    requestBody = route.request().postData();
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ valid: false, reason: 'invalid' }) });
+  });
+  await page.goto('/?license=privacy-fixture');
+  await expect.poll(() => requestUrl).toContain('license=privacy-fixture');
+  const url = new URL(requestUrl);
+  expect([...url.searchParams.keys()]).toEqual(['license']);
+  expect(requestBody).toBeNull();
+  expect(requestUrl).not.toContain('packet');
+  expect(requestUrl).not.toContain('filename');
 });
 
 test('@claim:configurable-checklists starts packets from filing, client, and payment-trail lists', async ({ page }, testInfo) => {
@@ -505,4 +548,38 @@ test('privacy and terms routes have semantic page titles', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Private by construction.' })).toBeVisible();
   await page.goto('/terms/');
   await expect(page.getByRole('heading', { level: 1, name: 'A careful tool, not an adviser.' })).toBeVisible();
+});
+
+test('moves focus and announces the destination for route navigation and browser back', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Privacy', exact: true }).first().click();
+  const privacyHeading = page.getByRole('heading', { level: 1, name: 'Private by construction.' });
+  await expect(privacyHeading).toBeFocused();
+  await expect(page.locator('#route-announcement')).toHaveText('Opened Private by construction.');
+  await page.goBack();
+  const landingHeading = page.getByRole('heading', { level: 1, name: 'Build a complete invoice evidence packet.' });
+  await expect(landingHeading).toBeFocused();
+  await expect(page.locator('#route-announcement')).toHaveText('Opened Build a complete invoice evidence packet.');
+});
+
+test('ships complete metadata for static routes and the designed 404 page', async ({ request }) => {
+  for (const [path, title, canonical] of [
+    ['/demo/', 'Demo — Invoice Packet', 'https://invoice-evidence-pack.sociobot.in/demo/'],
+    ['/privacy/', 'Privacy — Invoice Packet', 'https://invoice-evidence-pack.sociobot.in/privacy/'],
+    ['/terms/', 'Terms — Invoice Packet', 'https://invoice-evidence-pack.sociobot.in/terms/'],
+  ]) {
+    const html = await (await request.get(path)).text();
+    expect(html).toContain(`<title>${title}</title>`);
+    expect(html).toContain(`<link rel="canonical" href="${canonical}" />`);
+    expect(html).toContain('meta property="og:image"');
+    expect(html).toContain('name="twitter:card"');
+  }
+  const notFound = await readFile(resolve('public', '404.html'), 'utf8');
+  expect(notFound).toContain('<title>Page not found — Invoice Packet</title>');
+  expect(notFound).toContain('meta name="description"');
+  expect(notFound).toContain('link rel="canonical"');
+  expect(notFound).toContain('meta property="og:image"');
+  expect(notFound).toContain('name="twitter:card"');
+  expect(notFound).toContain('link rel="apple-touch-icon"');
+  expect(notFound).toContain('<h1>Page not found</h1>');
 });

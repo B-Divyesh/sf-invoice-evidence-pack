@@ -1,7 +1,7 @@
 import { defineConfig, type Plugin } from 'vite';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { copyFile, mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 interface StaticWebAppConfig {
@@ -41,9 +41,36 @@ function staticRoutes(): Plugin {
   return {
     name: 'static-route-fallbacks',
     async closeBundle() {
-      for (const route of ['demo', 'privacy', 'terms']) {
+      const routeMetadata = {
+        demo: {
+          title: 'Demo — Invoice Packet',
+          description: 'Try Invoice Packet with sample data in a separate workspace.',
+          canonical: 'https://invoice-evidence-pack.sociobot.in/demo/',
+        },
+        privacy: {
+          title: 'Privacy — Invoice Packet',
+          description: 'See how Invoice Packet stores and handles packet data.',
+          canonical: 'https://invoice-evidence-pack.sociobot.in/privacy/',
+        },
+        terms: {
+          title: 'Terms — Invoice Packet',
+          description: 'Read the Invoice Packet terms and license conditions.',
+          canonical: 'https://invoice-evidence-pack.sociobot.in/terms/',
+        },
+      } as const;
+      const root = await readFile(resolve('dist', 'index.html'), 'utf8');
+      for (const [route, metadata] of Object.entries(routeMetadata)) {
         await mkdir(resolve('dist', route), { recursive: true });
-        await copyFile(resolve('dist/index.html'), resolve('dist', route, 'index.html'));
+        const document = root
+          .replace(/<title>[^<]*<\/title>/, `<title>${metadata.title}</title>`)
+          .replace(/(<meta name="description" content=")[^"]*(" \/>)/, `$1${metadata.description}$2`)
+          .replace(/(<link rel="canonical" href=")[^"]*(" \/>)/, `$1${metadata.canonical}$2`)
+          .replace(/(<meta property="og:title" content=")[^"]*(" \/>)/, `$1${metadata.title}$2`)
+          .replace(/(<meta property="og:description" content=")[^"]*(" \/>)/, `$1${metadata.description}$2`)
+          .replace(/(<meta property="og:url" content=")[^"]*(" \/>)/, `$1${metadata.canonical}$2`)
+          .replace(/(<meta name="twitter:title" content=")[^"]*(" \/>)/, `$1${metadata.title}$2`)
+          .replace(/(<meta name="twitter:description" content=")[^"]*(" \/>)/, `$1${metadata.description}$2`);
+        await writeFile(resolve('dist', route, 'index.html'), document);
       }
     },
   };

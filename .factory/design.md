@@ -32,7 +32,7 @@ Invoice Packet treats each business event like a field specimen: collected once,
 
 ## Interaction grammar
 
-- “Collect” creates a specimen (packet); “Add evidence” attaches a labelled observation; “Prepare exports” checks and binds the folio.
+- Product controls name the work directly: “New packet,” “Collect evidence,” “Notes for the reviewer,” and “Export the packet.” Botanical language stays in the visual treatment and artwork, never in task labels.
 - Completion is shown as both a count and explicit words, never color alone. Missing evidence is surfaced in context and summarized before export.
 - The builder is a three-section worksheet rather than a wizard, so accountants and freelancers can move freely between metadata, checklist, and notes. Destructive actions require an explicit, named confirmation.
 - Status messages appear as small margin annotations in a polite live region. Offline status is persistent but quiet.

@@ -1,1 +1,1 @@
-Build invoice evidence packets with local files, missing-item checks, and ZIP or PDF exports.
+Build complete invoice evidence packets with local files, missing-item checks, and ZIP or PDF exports.

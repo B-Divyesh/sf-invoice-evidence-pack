@@ -18,7 +18,7 @@ of the banned plain-language terms.
 | Change it to match the request. | 6 | Pass |
 | Each file stays in this browser and receives a SHA-256 fingerprint. | 10 | Pass |
 | Download the evidence and manifest as ZIP, or make a PDF index. | 12 | Pass |
-| No document cloud and no account. | 6 | Pass |
+| No document cloud and no account. | 6 | Pass — `no-document-backend`, `no-account-required` |
 | SHA-256 fingerprints travel with the manifest. | 6 | Pass |
 | Plain ZIP, PDF, and full JSON backup are free. | 9 | Pass |
 | Build a checked evidence packet without uploading your files. | 9 | Pass |
@@ -27,6 +27,11 @@ Headings, labels, and actions: **Private invoice evidence packets**, **Try it
 with sample data**, **Start your first packet**, **Storage and export privacy**,
 **File fingerprints in each manifest**, **Download ZIP, PDF, or JSON backup**,
 and **Restore an existing license**. Each names the task or result directly.
+
+Workspace headings and labels: **Saved packets**, **New packet**, **Packet
+details**, **Collect evidence**, **Evidence files**, **Notes for the reviewer**,
+and **Export the packet**. Each uses the same packet, checklist, evidence,
+notes, and export terms as the landing page.
 
 ## README
 
@@ -61,3 +66,8 @@ and **Restore an existing license**. Each names the task or result directly.
 | The complete portable JSON file | backup |
 | Optional paid access | license |
 | Settlement evidence | payment trail |
+
+## Legal pages
+
+The route h1 headings are the literal page names **Privacy** and **Terms**.
+Their explanatory text follows below each heading.

@@ -106,10 +106,10 @@
   },
   {
     "id": "configurable-checklists",
-    "claim": "Start a packet from cross-border filing, client review, or payment-trail checklists.",
+    "claim": "Start a packet from cross-border filing, client review, or payment trail checklists.",
     "where": "new-packet dialog, README",
     "test": "npm run test:e2e -- --project=chromium --grep @claim:configurable-checklists",
-    "sandbox": "fresh Chromium context; assert the filing and client options, select payment-trail, create a packet, and observe its checklist"
+    "sandbox": "fresh Chromium context; assert the filing and client options, select Payment trail, create a packet, and observe its checklist"
   },
   {
     "id": "no-document-backend",
@@ -117,6 +117,13 @@
     "where": "assurance strip, privacy page, README",
     "test": "npm run test:e2e -- --project=chromium --grep @claim:no-document-backend",
     "sandbox": "fresh Chromium context; record every request while creating a packet and attaching evidence, then assert no third-party request occurs"
+  },
+  {
+    "id": "no-account-required",
+    "claim": "Create and export a packet without registering or signing in.",
+    "where": "landing assurance strip",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:no-account-required",
+    "sandbox": "fresh Chromium context; assert no registration or sign-in control appears, create a packet, attach evidence, and observe a ZIP download"
   },
   {
     "id": "pwa-installable",

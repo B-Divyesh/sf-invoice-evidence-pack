@@ -4,11 +4,11 @@ Create one invoice packet for a client review or filing. Add evidence files, che
 
 Live product: <https://invoice-evidence-pack.sociobot.in>
 
-Try the isolated sample workspace: <https://invoice-evidence-pack.sociobot.in/demo/>
+Try the isolated sample workspace: <https://invoice-evidence-pack.sociobot.in/?demo=1>
 
 ## What it does
 
-- Start from a cross-border filing, client review, or payment-trail checklist.
+- Start from a cross-border filing, client review, or payment trail checklist.
 - Store packets and files in this browser. It does not upload packet files or use analytics.
 - Create a SHA-256 fingerprint for each evidence file and include it in the manifest.
 - Export plain ZIP packets, PDF manifests, and full JSON backups for free.

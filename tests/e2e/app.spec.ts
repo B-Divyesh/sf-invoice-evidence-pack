@@ -69,7 +69,7 @@ test('builds and persists a packet with hashed evidence', async ({ browser }) =>
   await expect(page).toHaveTitle(/Invoice Packet/);
   await expect(page.locator('h1')).toHaveCount(1);
   await expect(page.getByRole('heading', { level: 1, name: 'Build a complete invoice evidence packet.' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Try it with sample data' })).toHaveAttribute('href', '/demo/');
+  await expect(page.getByRole('link', { name: 'Try it with sample data' })).toHaveAttribute('href', '/?demo=1');
 
   await page.getByRole('button', { name: 'Start your first packet' }).click();
   await page.getByLabel('Packet name Required').fill('Acme August evidence');
@@ -124,9 +124,9 @@ test('renders exactly one h1 on every route and stable workspace state', async (
   await expectOnePageHeading(page, 'Your packets');
 
   await page.goto('/privacy/');
-  await expectOnePageHeading(page, 'Private by construction.');
+  await expectOnePageHeading(page, 'Privacy');
   await page.goto('/terms/');
-  await expectOnePageHeading(page, 'A careful tool, not an adviser.');
+  await expectOnePageHeading(page, 'Terms');
   await page.goto('/404.html');
   await expectOnePageHeading(page, 'Page not found');
 });
@@ -139,7 +139,7 @@ test('renders exactly one h1 while local storage is loading', async ({ page }) =
     });
   });
   await page.goto('/');
-  await expect(page.getByText('Opening your field cabinet…')).toBeVisible();
+  await expect(page.getByText('Opening your saved packets…')).toBeVisible();
   await expectOnePageHeading(page, 'Invoice Packet');
 });
 
@@ -151,7 +151,7 @@ test('renders exactly one h1 when local storage cannot open', async ({ page }) =
     });
   });
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 2, name: 'Your local cabinet could not open.' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Your saved packets could not open.' })).toBeVisible();
   await expectOnePageHeading(page, 'Invoice Packet');
 });
 
@@ -375,7 +375,7 @@ test('@claim:license-verification-minimum-data sends only the fixture license to
   expect(requestUrl).not.toContain('filename');
 });
 
-test('@claim:configurable-checklists starts packets from filing, client, and payment-trail lists', async ({ page }, testInfo) => {
+test('@claim:configurable-checklists starts packets from filing, client, and payment trail lists', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium');
   await page.goto('/');
   await page.getByRole('button', { name: 'Start your first packet' }).click();
@@ -405,6 +405,27 @@ test('@claim:no-document-backend sends no packet, analytics, or tracking request
   });
   await expect(page.getByText('Evidence stored locally and fingerprinted.')).toBeVisible();
   expect(externalRequests).toEqual([]);
+});
+
+test('@claim:no-account-required creates and exports without registration or sign-in', async ({ browser }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  await withIsolatedPage(browser, async (page) => {
+    await page.goto('/');
+    await expect(page.getByText(/sign in|register|create an account/i)).toHaveCount(0);
+    await page.getByRole('button', { name: 'Start your first packet' }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByLabel(/email|username/i)).toHaveCount(0);
+    await page.getByLabel('Packet name Required').fill('No account packet');
+    await page.getByRole('button', { name: 'Create packet' }).click();
+    await page.locator('input[type="file"][data-item]').first().setInputFiles({
+      name: 'account-free-proof.txt', mimeType: 'text/plain', buffer: Buffer.from('account-free evidence'),
+    });
+    page.once('dialog', (dialog) => dialog.accept());
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export ZIP packet' }).click();
+    await expect((await download).suggestedFilename()).toBe('No-account-packet.zip');
+    await expect(page.getByText(/sign in|register|create an account/i)).toHaveCount(0);
+  });
 });
 
 test('@claim:pwa-installable ships an installable standalone manifest and controlled service worker', async ({ page }, testInfo) => {
@@ -453,14 +474,44 @@ test('@claim:demo-sandbox @claim:local-only opens a useful isolated demo without
     const url = new URL(request.url());
     if (url.origin !== 'http://127.0.0.1:4173' && url.protocol !== 'blob:') externalRequests.push(request.url());
   });
-  await page.goto('/demo/');
-  await expect(page).toHaveURL(/\/demo\/$/);
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Try it with sample data' }).click();
+  await expect(page).toHaveURL(/\?demo=1$/);
   await expect(page.getByText('Demo — sample data, nothing is saved to your packets')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Reset demo' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Kite Studio · August client review' })).toBeVisible();
   await expect(page.getByText('4 of 4 required items collected')).toBeVisible();
-  expect(await page.evaluate(async () => (await indexedDB.databases()).map((database) => database.name))).toContain('demo:invoice-packet');
-  expect(await page.evaluate(async () => (await indexedDB.databases()).map((database) => database.name))).not.toContain('invoice-packet');
+  await page.locator('input[data-field="title"]').fill('Changed demo title');
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.getByRole('heading', { name: 'Kite Studio · August client review' })).toBeVisible();
+  await expect(page.getByText('Demo reset to the original sample packet.')).toBeVisible();
+  const databases = await page.evaluate(async () => (await indexedDB.databases()).map((database) => database.name));
+  expect(databases).toContain('demo:invoice-packet');
+  expect(databases).toContain('invoice-packet');
+  const normalPacketCount = await page.evaluate(() => new Promise<number>((resolve, reject) => {
+    const open = indexedDB.open('invoice-packet');
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const count = open.result.transaction('packets', 'readonly').objectStore('packets').count();
+      count.onerror = () => reject(count.error);
+      count.onsuccess = () => resolve(count.result);
+    };
+  }));
+  expect(normalPacketCount).toBe(0);
   expect(externalRequests).toEqual([]);
+});
+
+test('uses task names throughout the sample workspace', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await expect(page.getByText('Saved packets', { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Collect evidence', exact: true })).toBeVisible();
+  await expect(page.getByText(/Evidence files$/, { exact: false })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Notes for the reviewer', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Export the packet', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Create packet' }).click();
+  await expect(page.getByText('New packet', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Close dialog' }).click();
+  await expect(page.locator('main')).not.toContainText(/field cabinet|new specimen|supporting trace|evidence specimens|margin notes|bind the folio/i);
 });
 
 test('@claim:aes-zip @claim:custom-templates exercises paid tools inside the demo sandbox', async ({ browser }, testInfo) => {
@@ -608,17 +659,17 @@ test('@claim:offline-reload serves the app from its service worker while offline
 
 test('privacy and terms routes have semantic page titles', async ({ page }) => {
   await page.goto('/privacy/');
-  await expect(page.getByRole('heading', { level: 1, name: 'Private by construction.' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Privacy', exact: true })).toBeVisible();
   await page.goto('/terms/');
-  await expect(page.getByRole('heading', { level: 1, name: 'A careful tool, not an adviser.' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Terms', exact: true })).toBeVisible();
 });
 
 test('moves focus and announces the destination for route navigation and browser back', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('link', { name: 'Privacy', exact: true }).first().click();
-  const privacyHeading = page.getByRole('heading', { level: 1, name: 'Private by construction.' });
+  const privacyHeading = page.getByRole('heading', { level: 1, name: 'Privacy', exact: true });
   await expect(privacyHeading).toBeFocused();
-  await expect(page.locator('#route-announcement')).toHaveText('Opened Private by construction.');
+  await expect(page.locator('#route-announcement')).toHaveText('Opened Privacy');
   await page.goBack();
   const landingHeading = page.getByRole('heading', { level: 1, name: 'Build a complete invoice evidence packet.' });
   await expect(landingHeading).toBeFocused();

@@ -54,13 +54,13 @@ function footer(): string {
 }
 
 function legalPage(kind: 'privacy' | 'terms'): string {
-  const privacy = `<p class="eyebrow">Privacy note · effective 28 August 2026</p><h1 id="route-heading" tabindex="-1">Private by construction.</h1>
+  const privacy = `<p class="eyebrow">Effective 28 August 2026</p><h1 id="route-heading" tabindex="-1">Privacy</h1>
     <p class="lede">Invoice Packet is a local-first tool. Your invoices, evidence files, notes, and packet records stay in your browser's IndexedDB until you delete them or export them.</p>
     <h2>What stays on your device</h2><p>Packet details, attachments, file hashes, custom templates, settings, and license tokens are stored locally. We do not operate document storage or analytics for this app.</p>
     <h2>When data leaves</h2><p>Exported files go only to the location you choose. License verification sends the license token, not packet contents or filenames.</p>
     <h2>Your controls</h2><p>Use “Back up all data” before clearing browser storage or changing devices. Deleting a packet removes its local record and files. Clearing site data removes everything, including the saved license token.</p>
     <h2>License purchases</h2><p>New license purchases are not available in this build. You can restore an existing license by pasting its token.</p>`;
-  const terms = `<p class="eyebrow">Terms · effective 28 August 2026</p><h1 id="route-heading" tabindex="-1">A careful tool, not an adviser.</h1>
+  const terms = `<p class="eyebrow">Effective 28 August 2026</p><h1 id="route-heading" tabindex="-1">Terms</h1>
     <p class="lede">Invoice Packet helps organize evidence. It does not provide legal, tax, accounting, foreign-exchange, or filing advice, and it does not submit anything to an authority.</p>
     <h2>Your responsibility</h2><p>You decide which checklist applies, verify packet contents, keep backups, use suitable passwords, and obtain professional advice for your jurisdiction. A “complete” label means only that every item you marked required has a file.</p>
     <h2>License features</h2><p>An existing license enables reusable custom templates and encrypted ZIP exports. Core packet building, hashing, JSON backup, plain ZIP, and PDF manifests remain free. Sociobot/Dodo is the merchant of record and handles payment and refunds. A refund or charge reversal revokes the license.</p>
@@ -79,7 +79,7 @@ function templateOptions(): string {
 
 function dialogs(): string {
   return `<dialog id="new-packet-dialog" aria-labelledby="new-packet-title"><form method="dialog" id="new-packet-form">
-    <div class="dialog-head"><div><p class="eyebrow">New specimen</p><h2 id="new-packet-title">Start an evidence packet</h2></div><button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button></div>
+    <div class="dialog-head"><div><p class="eyebrow">New packet</p><h2 id="new-packet-title">Start an evidence packet</h2></div><button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button></div>
     <label>Packet name <span>Required</span><input name="title" required maxlength="100" placeholder="Acme · INV-042" autocomplete="off" aria-describedby="packet-name-error"></label>
     <p class="form-error" id="packet-name-error" aria-live="polite"></p>
     <div class="form-pair"><label>Invoice number<input name="invoiceNumber" maxlength="80" autocomplete="off"></label><label>Invoice date<input name="invoiceDate" type="date"></label></div>
@@ -123,7 +123,7 @@ function emptyState(): string {
   return `<section class="hero">
     <div class="hero-copy"><p class="eyebrow">Private invoice evidence packets</p><h1 id="route-heading" tabindex="-1">Build a complete invoice evidence packet.</h1>
       <p>For cross-border freelancers and small firms preparing files for an accountant, client, or filing review.</p>
-      <div class="hero-actions"><a class="button primary" href="/demo/">Try it with sample data</a><button class="button secondary" data-action="new">${icon('plus')} Start your first packet</button></div>
+      <div class="hero-actions"><a class="button primary" href="/?demo=1">Try it with sample data</a><button class="button secondary" data-action="new">${icon('plus')} Start your first packet</button></div>
       <p class="action-note">The sample opens a separate workspace. Your own packet starts with a checklist.</p>
       <ul class="hero-facts"><li>Stored only in this browser</li><li>Works offline after the first visit</li><li>Free ZIP, PDF, and JSON exports</li></ul>
       <button class="text-button empty-import" data-action="import">${icon('file')} Import backup from another device</button>
@@ -134,12 +134,12 @@ function emptyState(): string {
 }
 
 function packetList(): string {
-  return `<aside class="packet-nav" aria-label="Saved packets"><div class="aside-title"><div><p class="eyebrow">Field cabinet</p><h1 id="route-heading" tabindex="-1">Your packets</h1></div><button class="icon-button bordered" data-action="new" aria-label="Create packet">${icon('plus')}</button></div>
+  return `<aside class="packet-nav" aria-label="Saved packets"><div class="aside-title"><div><p class="eyebrow">Saved packets</p><h1 id="route-heading" tabindex="-1">Your packets</h1></div><button class="icon-button bordered" data-action="new" aria-label="Create packet">${icon('plus')}</button></div>
     <div class="packet-list">${packets.map((packet) => {
       const progress = progressFor(packet);
       return `<button class="packet-tab ${packet.id === selectedId ? 'active' : ''}" data-action="select" data-id="${escapeHtml(packet.id)}" aria-current="${packet.id === selectedId ? 'true' : 'false'}"><span><strong>${escapeHtml(packet.title)}</strong><small>${escapeHtml(packet.invoiceNumber || 'No invoice number')} · ${progress.percent}% complete</small></span><span class="specimen-no">${String(packets.indexOf(packet) + 1).padStart(2, '0')}</span></button>`;
     }).join('')}</div>
-    <div class="data-tools"><p>Your cabinet is stored only in this browser.</p><button class="text-button" data-action="backup">${icon('download')} Back up all data</button><button class="text-button" data-action="import">${icon('file')} Import backup</button></div>
+    <div class="data-tools"><p>Your packets are stored only in this browser.</p><button class="text-button" data-action="backup">${icon('download')} Back up all data</button><button class="text-button" data-action="import">${icon('file')} Import backup</button></div>
   </aside>`;
 }
 
@@ -155,18 +155,18 @@ function evidenceRow(item: EvidenceItem, index: number): string {
 function editor(packet: Packet): string {
   const progress = progressFor(packet);
   return `<article class="packet-editor">
-    <div class="packet-top"><div><p class="eyebrow">Specimen ${String(packets.findIndex((row) => row.id === packet.id) + 1).padStart(2, '0')} · updated ${localDate(packet.updatedAt)}</p><h2>${escapeHtml(packet.title)}</h2></div><button class="icon-button bordered danger" data-action="delete" aria-label="Delete ${escapeHtml(packet.title)}">${icon('trash')}</button></div>
+    <div class="packet-top"><div><p class="eyebrow">Packet ${String(packets.findIndex((row) => row.id === packet.id) + 1).padStart(2, '0')} · updated ${localDate(packet.updatedAt)}</p><h2>${escapeHtml(packet.title)}</h2></div><button class="icon-button bordered danger" data-action="delete" aria-label="Delete ${escapeHtml(packet.title)}">${icon('trash')}</button></div>
     <section class="progress-sheet" aria-label="Packet completion"><div class="progress-copy"><span class="progress-number">${progress.percent}<small>%</small></span><div><strong>${progress.missing.length ? `${progress.missing.length} required ${progress.missing.length === 1 ? 'item' : 'items'} missing` : 'Ready for first review'}</strong><span>${progress.complete} of ${progress.required} required items collected</span></div></div><progress class="progress-track" max="100" value="${progress.percent}" aria-label="Required evidence collected">${progress.percent}%</progress></section>
-    <section class="worksheet" aria-labelledby="details-title"><div class="section-heading"><div><p class="section-no">I · Field label</p><h2 id="details-title">Identify the business event</h2></div><p>Keep this factual. It appears in the exported manifest.</p></div>
+    <section class="worksheet" aria-labelledby="details-title"><div class="section-heading"><div><p class="section-no">I · Packet details</p><h2 id="details-title">Identify the business event</h2></div><p>Keep this factual. It appears in the exported manifest.</p></div>
       <div class="details-grid"><label>Packet name<input data-field="title" maxlength="100" value="${escapeHtml(packet.title)}" required></label><label>Invoice number<input data-field="invoiceNumber" maxlength="80" value="${escapeHtml(packet.invoiceNumber)}"></label><label>Client or counterparty<input data-field="client" maxlength="100" value="${escapeHtml(packet.client)}"></label><label>Invoice date<input data-field="invoiceDate" type="date" value="${escapeHtml(packet.invoiceDate)}"></label><label>Jurisdiction / review context<input data-field="jurisdiction" maxlength="100" value="${escapeHtml(packet.jurisdiction)}"></label><label>Currency<input data-field="currency" maxlength="12" value="${escapeHtml(packet.currency)}"></label></div>
     </section>
-    <section class="worksheet" aria-labelledby="evidence-title"><div class="section-heading"><div><p class="section-no">II · Evidence specimens</p><h2 id="evidence-title">Collect the supporting trace</h2></div><button class="button secondary" data-action="add-item">${icon('plus')} Add checklist item</button></div>
+    <section class="worksheet" aria-labelledby="evidence-title"><div class="section-heading"><div><p class="section-no">II · Evidence files</p><h2 id="evidence-title">Collect evidence</h2></div><button class="button secondary" data-action="add-item">${icon('plus')} Add checklist item</button></div>
       <ol class="evidence-list">${packet.items.map(evidenceRow).join('')}</ol>
       ${packet.items.length === 0 ? '<div class="inline-empty"><p>Your checklist is empty.</p><button class="button secondary" data-action="add-item">Add the first item</button></div>' : ''}
-      <div class="template-save"><div><strong>Reuse this field list</strong><span>Save its labels and requirements as a new template. Files are never copied.</span></div><button class="button secondary" data-action="save-template">${licensed ? 'Save as template' : `${icon('lock')} Unlock custom templates`}</button></div>
+      <div class="template-save"><div><strong>Reuse this checklist</strong><span>Save its labels and requirements as a new template. Files are never copied.</span></div><button class="button secondary" data-action="save-template">${licensed ? 'Save as template' : `${icon('lock')} Unlock custom templates`}</button></div>
     </section>
-    <section class="worksheet" aria-labelledby="notes-title"><div class="section-heading"><div><p class="section-no">III · Margin notes</p><h2 id="notes-title">Leave context for the reviewer</h2></div><p>Explain exceptions, rate sources, or intentional omissions.</p></div><label>Accountant or reviewer notes<textarea data-field="notes" rows="7" maxlength="5000" placeholder="Example: Payment arrived net of a correspondent-bank fee…">${escapeHtml(packet.notes)}</textarea></label></section>
-    <section class="bind-sheet" aria-labelledby="export-title"><div class="bind-copy"><p class="section-no">IV · Bind the folio</p><h2 id="export-title">Prepare the handover</h2><p>${progress.missing.length ? `The manifest will clearly flag ${progress.missing.length} missing required ${progress.missing.length === 1 ? 'item' : 'items'}. You can still export a working packet.` : 'Every required item has been collected. The packet is ready for a first review.'}</p><label class="check-label"><input id="redact-filenames" type="checkbox"> Redact original filenames in exports</label></div>
+    <section class="worksheet" aria-labelledby="notes-title"><div class="section-heading"><div><p class="section-no">III · Review notes</p><h2 id="notes-title">Notes for the reviewer</h2></div><p>Explain exceptions, rate sources, or intentional omissions.</p></div><label>Accountant or reviewer notes<textarea data-field="notes" rows="7" maxlength="5000" placeholder="Example: Payment arrived net of a correspondent-bank fee…">${escapeHtml(packet.notes)}</textarea></label></section>
+    <section class="bind-sheet" aria-labelledby="export-title"><div class="bind-copy"><p class="section-no">IV · Packet exports</p><h2 id="export-title">Export the packet</h2><p>${progress.missing.length ? `The manifest will clearly flag ${progress.missing.length} missing required ${progress.missing.length === 1 ? 'item' : 'items'}. You can still export a working packet.` : 'Every required item has been collected. The packet is ready for a first review.'}</p><label class="check-label"><input id="redact-filenames" type="checkbox"> Redact original filenames in exports</label></div>
       <div class="export-actions"><button class="button primary" data-action="zip">${icon('download')} Export ZIP packet</button><button class="button secondary" data-action="pdf">Export PDF manifest</button><button class="button secondary" data-action="encrypted">${icon('lock')} ${licensed ? 'Encrypted ZIP' : 'Unlock encrypted ZIP'}</button></div>
     </section>
     <details class="history"><summary>Packet history</summary><ol>${packet.history.map((entry) => `<li><span>${escapeHtml(entry.action)}</span><time datetime="${escapeHtml(entry.at)}">${localDate(entry.at)}</time></li>`).join('')}</ol></details>
@@ -226,8 +226,8 @@ function render(routeChanged = false): void {
     ? '<h1 id="route-heading" tabindex="-1" class="visually-hidden">Invoice Packet</h1>'
     : '';
   app.innerHTML = `${header()}${demoBanner()}<main id="main">${hiddenHeading}
-    ${updateWorker ? '<div class="update-note" role="status">A fresh field kit is ready. <button data-action="update-sw">Update now</button></div>' : ''}
-    ${loading ? '<div class="loading-state" role="status"><span class="pressed-leaf"></span><p>Opening your field cabinet…</p></div>' : storageError ? `<section class="error-state"><p class="eyebrow">Storage unavailable</p><h2>Your local cabinet could not open.</h2><p>${escapeHtml(storageError)}</p><button class="button secondary" data-action="reload">Reload the app</button></section>` : packets.length ? workspace() : emptyState()}
+    ${updateWorker ? '<div class="update-note" role="status">A new app version is ready. <button data-action="update-sw">Update now</button></div>' : ''}
+    ${loading ? '<div class="loading-state" role="status"><span class="pressed-leaf"></span><p>Opening your saved packets…</p></div>' : storageError ? `<section class="error-state"><p class="eyebrow">Storage unavailable</p><h2>Your saved packets could not open.</h2><p>${escapeHtml(storageError)}</p><button class="button secondary" data-action="reload">Reload the app</button></section>` : packets.length ? workspace() : emptyState()}
     <section class="assurance"><p class="eyebrow">Storage and export privacy</p><div><strong>Stored locally</strong><span>No document cloud and no account.</span></div><div><strong>File fingerprints in each manifest</strong><span>SHA-256 fingerprints travel with the manifest.</span></div><div><strong>Download ZIP, PDF, or JSON backup</strong><span>Plain ZIP, PDF, and full JSON backup are free.</span></div>${demoMode ? '<span class="demo-paid-note">Paid tools are included in this demo.</span>' : `<button class="text-button" data-action="license">${licensed ? 'Paid tools active' : checkoutEnabled ? 'View encrypted-export options' : 'Restore an existing license'}</button>`}</section>
   </main>${footer()}${dialogs()}<div class="toast" role="status" aria-live="polite" aria-atomic="true">${escapeHtml(notice)}</div>`;
   bindGlobalEvents();

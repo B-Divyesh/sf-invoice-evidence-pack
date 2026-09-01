@@ -1,20 +1,85 @@
-# Invoice Packet verification-9 handoff — 2026-09-01
+# Invoice Packet repair-6 handoff — 2026-09-01
 
-## Independent verification outcome
+## Outcome
 
-**FAIL — do not release this candidate.** Independent QA of
-`dea5d91173d777429844f517937615fe53916ff2` at
-<https://invoice-evidence-pack.sociobot.in> found two `h1` elements after
-opening `/demo/`: a hidden `Invoice Packet` heading and visible `Your packets`
-heading. This fails the one-`h1` accessibility contract on desktop and 390px
-mobile. The full evidence and required corrective action are in
-[`verification-9.md`](verification-9.md).
+**PASS.** Repaired the only release blocker in independent verification report
+`0a734dc256c57ed83cdf95f51a4460fb7aace64c` for candidate
+`dea5d91173d777429844f517937615fe53916ff2`. The repair commit is
+`acc393c221d1027311823436bafa3e9d7ccea39a`.
 
-All declared claim commands, clean-install tests, TypeScript check, build,
-full 48-test browser matrix, 96-test repeat matrix, deployment byte identity,
-privacy request review, PWA offline reload, and axe serious/critical checks
-otherwise passed. The candidate is deployed, but it needs the duplicate-heading
-correction and a fresh independent verification before release.
+The repaired static PWA is deployed at
+<https://invoice-evidence-pack.sociobot.in>. The live artifact matches the
+local production build.
+
+## Finding and repair
+
+- Reproduced `/demo/` with two `h1` elements at 1440×900 and 390×844: hidden
+  “Invoice Packet” and visible “Your packets”.
+- The root cause was the shared render path adding a loading/error heading to
+  populated workspaces that already owned the visible route heading.
+- The shared heading now renders only during loading and storage-error states.
+  Empty and populated workspaces continue to own their visible headings.
+- Added a Playwright regression that checks one literal `h1` and one
+  accessibility-tree level-one heading. It covers empty, dialog, populated,
+  direct `/demo/`, reset demo, `?demo=1`, start-for-real, privacy, terms, 404,
+  loading, and storage-error states in desktop and 390 px projects.
+
+## Verification
+
+- Work-order build command `npm ci && npm test && npm run build`: passed. The
+  install found zero known vulnerabilities; Vitest passed 11/11 tests; `dist/`
+  contains the production site.
+- `npm run check`: passed. There is no separate lint script or configuration.
+- `npm run test:e2e`: 39 passed and 15 intentionally project-gated tests
+  skipped across the 54-test desktop/mobile matrix.
+- `npm run test:e2e:repeat`: 78 passed and 30 intentionally project-gated
+  tests skipped across the 108-test repeat matrix.
+- Every command in `.factory/claims.json` passed exactly as written. All 21
+  claim IDs have exactly one matching test tag.
+- `/opt/fleet/lib/verify-url.sh` passed locally in 685 ms and live in 821 ms.
+  Both runs found the title, `lang=en`, one `h1`, one `main`, complete image alt
+  text, labelled buttons, and no console errors.
+- Playwright Axe found zero serious or critical findings on desktop and 390 px
+  root/demo states. The first keyboard focus is the skip link with a 3 px
+  visible outline. Reduced-motion durations resolve to `0.00001s`.
+- Desktop and 390 px root/demo audits recorded no console errors, failed
+  requests, third-party requests, or horizontal overflow.
+- A fresh service-worker context was controlled by cache
+  `invoice-packet-36a99d0aa4b2`. `registration.update()` completed with no
+  waiting worker. A 390 px offline reload retained the seeded demo, displayed
+  “Offline”, and kept exactly one `h1`.
+- Mobile Lighthouse: performance 100, accessibility 100, best practices 100,
+  SEO 100; LCP 1.5 s, total blocking time 0 ms, CLS 0.
+- Initial JavaScript is 48.28 kB raw / 16.52 kB gzip. CSS is 21.30 kB raw /
+  5.51 kB gzip. PDF and archive export code remains lazy-loaded.
+
+## Deployment and live identity
+
+- Pushed `acc393c221d1027311823436bafa3e9d7ccea39a` to `origin/main`.
+- Reused only `sf-invoice-evidence-pack` and its existing eastus2 Static Web
+  App. Published `dist/` with deployment ID
+  `9e11380b-8779-4985-812c-773618f4c9d4` and confirmed the scoped custom domain
+  is ready over TLS.
+- `npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in`
+  passed response policy and local/live byte identity. SHA-256 values: root
+  `d861422c9036e5bf62461dc34c19af6b47eddd13375622d148bd881abe564ad3`,
+  service worker
+  `17d9272609f83b474a57a2c4340fe4175396aa452dae99e06c6e73bdb831a2e0`,
+  manifest
+  `4e66e893cd05bf6edc41541d0f4005eeab866856add85518dc02cd6365dfab83`.
+- Fresh live `/demo/` checks found only “Your packets” as the `h1` and as the
+  accessibility-tree level-one heading at desktop and 390 px. Axe reported no
+  serious or critical findings. The live demo made only same-origin requests.
+- `/`, `/demo/`, `/privacy/`, and `/terms/` return their correct titles and one
+  `h1`. An unknown route returns the designed 404 document with HTTP 404.
+
+## Scope and remaining work
+
+No release-blocking gaps remain. Vite still reports one large lazy export
+chunk; it is not part of the initial request and does not exceed the initial
+JavaScript budget. This static product has no backend or package-consumer gate.
+No unrelated app, database, key vault setting, staging slot, billing endpoint,
+or storage resource was read or changed.
 
 ---
 

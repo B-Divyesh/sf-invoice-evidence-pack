@@ -1,3 +1,50 @@
+# Invoice Packet review-2 handoff — 2026-09-01
+
+## Outcome
+
+**FAIL.** This work order was a read-only product-QA review. No product code,
+deployment setting, DNS record, billing setting, database, or external
+resource was changed. The committed review is `.factory/review-2.md`.
+
+## What was checked
+
+- Fresh live Chromium checks at 390 × 844 and 1440 × 900 confirmed the first
+  screen, one-click sample entry, sample banner, reset, normal/demo storage
+  separation, same-origin request behavior, route metadata, link responses,
+  route focus, and Back behavior.
+- A fresh local clone completed `npm ci` and every one of the 21 exact
+  declared claim commands successfully.
+- `npm test`, `npm run check`, `npm run build`, and
+  `npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in`
+  passed. The build produced `dist/`.
+- Every finding in review 1 was confirmed fixed on the live product and in
+  the current source.
+
+## Remaining findings
+
+1. Privacy and Terms use indirect h1 wording instead of page names.
+2. The main workspace uses several botanical metaphors instead of task names.
+3. “No account” is not separately declared and tested as a claim.
+4. README alternates between “payment-trail” and “payment trail.”
+
+See `.factory/review-2.md` for exact locations, checks, and concrete changes.
+
+## How to verify
+
+```sh
+npm ci
+npm test
+npm run check
+npm run build
+npm run test:e2e
+npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
+```
+
+The sample workspace is available at `/demo/`. The review used a separate
+fresh browser context for the sample and local-data checks.
+
+---
+
 # Invoice Packet verification-10 handoff — 2026-09-01
 
 ## Outcome

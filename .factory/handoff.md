@@ -55,8 +55,24 @@ PDF tried to fetch a full fallback font; it passes after the repair.
 
 ## Deployment
 
-Deployment and live byte-identity verification will be recorded here after the
-static release command completes.
+Deployed `dist/` to the product's existing Static Web App (`sf-invoice-evidence-pack`)
+on 2026-09-01. Azure deployment ID: `e5acbb4b-a9a7-4726-b11c-c01175bfb612`.
+
+`npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in`
+passed the restrictive response policy and byte identity for root, service
+worker, manifest, demo, privacy, and terms. The live service-worker SHA-256 is
+`3d5e14729c6bd29785bfd2673e9a7f072b3f7184f5075977b1ad9fe95164a2f0`.
+
+`node scripts/verify-live.mjs https://invoice-evidence-pack.sociobot.in
+.factory/evidence/repair-7/live` also passed desktop first-read/demo, normal
+ZIP export without an account, routes/focus/404, 390px mobile Axe, privacy,
+offline reload, and request/console checks (no external workflow requests or
+errors).
+
+A fresh live `?demo=1` context then confirmed seven cached export modules and
+the two compact fonts before going offline. Its first ZIP contained the sample
+manifest and four present evidence items; its first PDF exposed the sample
+title and client text. No full fallback font was cached or requested.
 
 ## Known boundary
 

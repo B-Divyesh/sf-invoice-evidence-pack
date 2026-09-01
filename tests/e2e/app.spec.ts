@@ -22,6 +22,13 @@ async function withIsolatedPage(
   }
 }
 
+async function expectOnePageHeading(page: Page, name: string): Promise<void> {
+  await expect(page.locator('h1')).toHaveCount(1);
+  const accessibleHeading = page.getByRole('heading', { level: 1 });
+  await expect(accessibleHeading).toHaveCount(1);
+  await expect(accessibleHeading).toHaveText(name);
+}
+
 test('serves the production cache, browser, and manifest policies', async ({ page, request }) => {
   const errors: string[] = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
@@ -90,6 +97,62 @@ test('builds and persists a packet with hashed evidence', async ({ browser }) =>
   await expect((await download).suggestedFilename()).toBe('Acme-August-evidence.zip');
   expect(errors).toEqual([]);
   });
+});
+
+test('renders exactly one h1 on every route and stable workspace state', async ({ page }) => {
+  await page.goto('/');
+  await expectOnePageHeading(page, 'Build a complete invoice evidence packet.');
+
+  await page.getByRole('button', { name: 'Start your first packet' }).click();
+  await expectOnePageHeading(page, 'Build a complete invoice evidence packet.');
+  await page.getByLabel('Packet name Required').fill('Heading regression packet');
+  await page.getByRole('button', { name: 'Create packet' }).click();
+  await expect(page.getByRole('heading', { level: 2, name: 'Heading regression packet' })).toBeVisible();
+  await expectOnePageHeading(page, 'Your packets');
+
+  await page.goto('/demo/');
+  await expect(page.getByRole('heading', { level: 2, name: 'Kite Studio · August client review' })).toBeVisible();
+  await expectOnePageHeading(page, 'Your packets');
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expectOnePageHeading(page, 'Your packets');
+
+  await page.goto('/?demo=1');
+  await expect(page.getByRole('heading', { level: 2, name: 'Kite Studio · August client review' })).toBeVisible();
+  await expectOnePageHeading(page, 'Your packets');
+  await page.getByRole('button', { name: 'Start for real' }).click();
+  await expect(page).toHaveURL('/');
+  await expectOnePageHeading(page, 'Your packets');
+
+  await page.goto('/privacy/');
+  await expectOnePageHeading(page, 'Private by construction.');
+  await page.goto('/terms/');
+  await expectOnePageHeading(page, 'A careful tool, not an adviser.');
+  await page.goto('/404.html');
+  await expectOnePageHeading(page, 'Page not found');
+});
+
+test('renders exactly one h1 while local storage is loading', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'indexedDB', {
+      configurable: true,
+      value: { open: () => ({}) },
+    });
+  });
+  await page.goto('/');
+  await expect(page.getByText('Opening your field cabinet…')).toBeVisible();
+  await expectOnePageHeading(page, 'Invoice Packet');
+});
+
+test('renders exactly one h1 when local storage cannot open', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'indexedDB', {
+      configurable: true,
+      value: { open: () => { throw new Error('Test storage failure.'); } },
+    });
+  });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 2, name: 'Your local cabinet could not open.' })).toBeVisible();
+  await expectOnePageHeading(page, 'Invoice Packet');
 });
 
 test('has no serious accessibility violations in empty and editor states', async ({ page }) => {

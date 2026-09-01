@@ -222,7 +222,9 @@ function render(routeChanged = false): void {
     demoMode ? '/demo/' : '/',
     demoMode ? 'Try Invoice Packet with sample data in a separate workspace.' : 'Build a checked invoice evidence packet with local files, hashes, missing-item flags, ZIP, PDF, and backup export.',
   );
-  const hiddenHeading = !loading && !storageError && packets.length === 0 ? '' : '<h1 id="route-heading" tabindex="-1" class="visually-hidden">Invoice Packet</h1>';
+  const hiddenHeading = loading || storageError
+    ? '<h1 id="route-heading" tabindex="-1" class="visually-hidden">Invoice Packet</h1>'
+    : '';
   app.innerHTML = `${header()}${demoBanner()}<main id="main">${hiddenHeading}
     ${updateWorker ? '<div class="update-note" role="status">A fresh field kit is ready. <button data-action="update-sw">Update now</button></div>' : ''}
     ${loading ? '<div class="loading-state" role="status"><span class="pressed-leaf"></span><p>Opening your field cabinet…</p></div>' : storageError ? `<section class="error-state"><p class="eyebrow">Storage unavailable</p><h2>Your local cabinet could not open.</h2><p>${escapeHtml(storageError)}</p><button class="button secondary" data-action="reload">Reload the app</button></section>` : packets.length ? workspace() : emptyState()}

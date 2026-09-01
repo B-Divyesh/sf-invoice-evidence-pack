@@ -69,10 +69,10 @@ npm run test:e2e:repeat
 
 ## Delivery and scope
 
-Product repair commit: `b9aca8b618bf5aa2c56d29bb2a5213e1933765e3`.
-The next commit records this handoff; push `main` to trigger the existing
-factory-managed static deployment, then run the repository's deployment
-identity verifier against the product origin once propagation completes.
+Product repair commit: `b9aca8b618bf5aa2c56d29bb2a5213e1933765e3`; handoff
+commit: `6dfb493`. Push `main` to trigger the existing factory-managed static
+deployment, then run the repository's deployment identity verifier against the
+product origin once propagation completes.
 
 No Sociobot API, billing endpoint, secret, app setting, database, or unrelated
 service was read or contacted. The only browser network checks were against

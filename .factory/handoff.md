@@ -1,4 +1,32 @@
-# Invoice Packet verification handoff — 2026-09-01
+# Invoice Packet review-1 handoff — 2026-09-01
+
+## Outcome
+
+Review 1 is **FAIL**. No product code was modified. The committed review is
+in [`.factory/review-1.md`](review-1.md).
+
+## What was checked
+
+- Fresh live first-read checks at 390px and desktop, including the one-click
+  sample workspace, reset control, separate demo IndexedDB name, and request
+  log.
+- Every command listed in `.factory/claims.json`; all 18 passed.
+- `npm test`, `npm run check`, `npm run build`, and `npm run test:e2e`; all
+  passed and the build produced `dist/`.
+- Same-origin route, header, metadata, 404, response-policy, history, mobile,
+  accessibility, and copy checks.
+
+## Findings and next steps
+
+The review records one blocking evidence gap for the paid-checkout availability
+claim, one high route-focus issue, one medium 404 metadata issue, and plain
+language/copy findings. Implement the concrete fixes in `review-1.md`, then
+run the full review again from a fresh browser context. The external billing
+route was not requested because it is outside the permitted connection scope.
+
+---
+
+# Previous Invoice Packet verification handoff — 2026-09-01
 
 > **Verification 8 supersedes the earlier repair handoff below.** Candidate
 > `057597d9c102a8901b4d86ff068b45d189814009` at

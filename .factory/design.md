@@ -58,7 +58,9 @@ The 1200×630 social card is a centered local crop of the same original hero,
 created with ImageMagick on 2026-08-30. It introduces no new source material.
 
 On 2026-08-30, the PDF core script subsets were generated locally with
-FontTools 4.63.0 from the already-noted Noto sources. The complete source
-fonts remain locally hosted as on-demand fallbacks so uncommon Devanagari or
-Japanese metadata still exports correctly without putting multi-megabyte fonts
-in the offline installation shell.
+FontTools 4.63.0 from the already-noted Noto sources. On 2026-09-01, the
+Devanagari core subset was regenerated with U+00B7, the separator used in the
+shipped sample packet title. The complete source fonts remain locally hosted
+as on-demand fallbacks so uncommon Devanagari or Japanese metadata still
+exports correctly without putting multi-megabyte fonts in the offline
+installation shell.

@@ -83,6 +83,11 @@ interface BuildManifestEntry {
   isEntry?: boolean;
 }
 
+interface OfflineAssets {
+  shell: string[];
+  exportDependencies: string[];
+}
+
 function emittedFileForCachePath(path: string): string {
   const routeFiles: Record<string, string> = {
     '/': 'index.html',
@@ -93,7 +98,7 @@ function emittedFileForCachePath(path: string): string {
   return routeFiles[path] || path.slice(1);
 }
 
-async function appShellAssets(): Promise<string[]> {
+async function offlineAssets(): Promise<OfflineAssets> {
   const manifestPath = resolve('dist', 'asset-manifest.json');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<string, BuildManifestEntry>;
   const entry = Object.entries(manifest).find(([, value]) => value.isEntry)?.[0];
@@ -108,22 +113,35 @@ async function appShellAssets(): Promise<string[]> {
     item.imports?.forEach(visit);
   };
   visit(entry);
+
+  // Every emitted JavaScript module other than the entry's static graph is a
+  // dependency of one of the two local export formats. Keep those modules in
+  // the installation cache so the first ZIP or PDF export still works after a
+  // successful visit goes offline. They stay lazy in index.html, so they do
+  // not add to the app's first-execution JavaScript budget.
+  const exportDependencies = new Set<string>();
+  for (const item of Object.values(manifest)) {
+    const path = `/${item.file}`;
+    if (item.file.endsWith('.js') && !assets.has(path)) exportDependencies.add(path);
+  }
   await unlink(manifestPath);
-  return [...assets];
+  return { shell: [...assets], exportDependencies: [...exportDependencies] };
 }
 
 function offlineServiceWorker(): Plugin {
   return {
     name: 'offline-service-worker',
     async closeBundle() {
-      // Keep installation small and deterministic. Export libraries and PDF fonts are
-      // fetched only when an export needs them, then cached by the fetch handler for
-      // subsequent offline use. Precaching all emitted chunks made a first visit 6.9 MB.
+      const assets = await offlineAssets();
+      // The full script-font fallbacks are intentionally not installed. The compact
+      // local subsets cover the app and demo; unusual scripts are fetched only when
+      // an online export needs them, avoiding a multi-megabyte first visit.
       const files = [...new Set([
         '/', '/demo/', '/privacy/', '/terms/', '/offline.html', '/manifest.webmanifest',
         '/icons/mark.svg', '/icons/icon-192.png', '/icons/icon-512.png',
         '/assets/hero-field-guide-768.webp', '/assets/hero-field-guide-1536.webp', '/assets/hero-field-guide-768.jpg',
-        ...await appShellAssets(),
+        '/assets/noto-sans-devanagari.ttf', '/assets/noto-sans-jp.ttf',
+        ...assets.shell, ...assets.exportDependencies,
       ])].sort();
       const version = createHash('sha256');
       for (const path of files) {

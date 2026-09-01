@@ -1,49 +1,67 @@
-# Invoice Packet verification 11 handoff — 2026-09-01
+# Invoice Packet repair handoff — 2026-09-01
 
 ## Outcome
 
-**FAIL.** Candidate `5ed131b535e1a23ef93bf6d830d52d8f8ed1e085` is
-deployed byte-for-byte at <https://invoice-evidence-pack.sociobot.in>, but it
-does not complete its core ZIP/PDF job on a first-use offline visit.
+Repaired the release-blocking first-use offline export failure recorded in
+[`verification-11.md`](verification-11.md). After a successful visit, the
+service worker now installs the lazy ZIP/PDF JavaScript graph and the two small
+PDF font subsets. The app's entry module stays lazy-load sized; the multi-
+megabyte script-font fallbacks remain on-demand for unusual metadata.
 
-## Release blocker
+The sample title's U+00B7 separator was absent from the compact Devanagari
+subset, which would otherwise force a full fallback font for the sample PDF.
+The regenerated 14,276-byte subset includes that glyph. Provenance and the
+new SHA-256 are recorded in `THIRD_PARTY_NOTICES.md` and `design.md`.
 
-In a fresh service-worker-controlled demo, going offline before using an
-export causes both **Export ZIP packet** and **Export PDF manifest** to produce
-no download. Their lazy chunks are absent from the app cache and fail with
-`net::ERR_FAILED`. This conflicts with “Works offline after the first visit”
-and the researched `pwa-offline` contract.
+## Regression coverage
 
-Evidence and the exact reproduction are in
-[`.factory/verification-11.md`](verification-11.md) and
-[`offline-first-export.json`](evidence/verification-11/offline-first-export.json).
+`@claim:offline-reload` now starts from a fresh Chromium context at `?demo=1`,
+waits for service-worker control, proves the generated lazy export modules and
+core PDF fonts are in Cache Storage, then goes offline before either export is
+used. It reloads the demo, downloads both formats, and independently checks:
 
-## Verification summary
+- ZIP entries include the manifest, README, and sample evidence; its manifest
+  names `Kite Studio · August client review` and has four present items.
+- PDF text contains the sample packet title and `Aozora 株式会社`.
+- No full fallback font is requested; `-full.ttf` assets are deliberately not
+  in the installation cache.
 
-- First-read/demo gate: passed.
-- Exact `.factory/claims.json` commands: 22/22 passed, but the offline claim
-  checks only shell reload and misses first-use exports.
-- `npm ci`: passed, zero known vulnerabilities.
+The focused regression failed before the font-subset adjustment because the
+PDF tried to fetch a full fallback font; it passes after the repair.
+
+## Verification
+
+- `npm ci`: passed, 140 packages installed; npm reported 0 vulnerabilities.
 - `npm test`: 11/11 passed.
 - `npm run check`: passed.
 - `npm run build`: passed and produced `dist/`.
-- `npm run test:e2e`: fresh rerun passed 42 with 16 intentional skips; an
-  earlier attempt ended only because Chromium itself received SIGSEGV.
-- `npm run test:e2e:repeat`: 84 passed with 32 intentional skips.
-- Deployment identity and online privacy/header checks: passed.
-- Axe: zero violations across desktop light/dark and 390 px mobile.
-- Lighthouse mobile: performance 100/99, accessibility 100/100, best
-  practices 100/100, SEO 100/100; LCP 1.3/1.5 s and CLS 0.
-- Product-license endpoint: 30 requests allowed; request 31 returned 429 with
-  `Retry-After: 4`.
+- Every one of the 22 commands declared in `.factory/claims.json` was run
+  separately and passed.
+- `npm run test:e2e`: 41 passed, 17 intentional mobile-only skips.
+- `npm run test:e2e:repeat`: 82 passed, 34 intentional skips.
+- `node .qa-axe-mobile.mjs`: no serious or critical Axe findings in desktop
+  light/dark or 390px mobile; no console errors or horizontal overflow.
+- `node .qa-independent.mjs`: keyboard validation, focus, reduced motion,
+  local storage, local-only requests, and offline reload passed.
+- `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4174/ .factory/evidence/repair-7`:
+  passed title, `lang`, one `h1`, `main`, image alt, labelled buttons, and no
+  console errors. Evidence is in `.factory/evidence/repair-7/`.
+- Lighthouse mobile against the production build: performance 100,
+  accessibility 100, best practices 100, SEO 100; LCP 1.5 s, TBT 0 ms,
+  CLS 0, total transfer 78 KiB.
+- Initial executable entry JavaScript remains 48,189 bytes raw / 16,454 bytes
+  gzip (under the 200 KB budget). The precache has 22 files, including seven
+  lazy export modules and the two compact fonts, with no full fallback font.
 
-No product code was modified. This handoff, the independent verification
-report, and verification evidence are the only repository changes.
+## Deployment
 
-## Required next step
+Deployment and live byte-identity verification will be recorded here after the
+static release command completes.
 
-Make ZIP and PDF dependencies available after the initial successful visit
-without breaking first-load budgets. Expand `@claim:offline-reload` to enter
-the demo, go offline before either export is used, download both formats, and
-inspect their contents. Then rerun every command above and the fresh live
-identity check.
+## Known boundary
+
+The complete Noto fallback fonts are intentionally not preinstalled because
+the Japanese source alone is about 4.8 MiB. They are used only for uncommon
+characters outside the local core subsets when the export is made online. The
+shipped offline demo and its complete ZIP/PDF workflow are fully cached and
+verified.

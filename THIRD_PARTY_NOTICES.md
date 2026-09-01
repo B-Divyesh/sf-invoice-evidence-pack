@@ -12,7 +12,7 @@ at `google/fonts` on 30 August 2026.
 
 Both font files are licensed under the SIL Open Font License, Version 1.1:
 
-- `noto-sans-devanagari.ttf` (core subset) SHA-256: `932e78cde6b835e52fab78660fd8d3699341363ef17a0530c2d3d4360d483c55`
+- `noto-sans-devanagari.ttf` (core subset, regenerated 1 September 2026 with U+00B7 for the shipped sample) SHA-256: `4fa3d786c6394912270828423129e69db3a122c99187aed8c3b35444f50352fd`
 - `noto-sans-devanagari-full.ttf` (on-demand fallback) SHA-256: `40626e5324a1daf78f725d61b33971fbd82858eb114833acc7597eee755febb1`
 - `noto-sans-jp.ttf` (core subset) SHA-256: `f4907cd2c2cbc767903655b96cae857c9d20896f9e9448c123418440194a64bf`
 - `noto-sans-jp-full.ttf` (on-demand fallback) SHA-256: `779368c39be1ec13d2c14ad468c914669aed98744765a61eb3c5c5616d069d05`

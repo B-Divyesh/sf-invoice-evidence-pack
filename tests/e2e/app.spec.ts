@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { BlobReader, TextWriter, ZipReader } from '@zip.js/zip.js';
 
@@ -638,22 +638,66 @@ test('keeps the shared Chromium browser alive after test-owned contexts close', 
   expect(browser.isConnected()).toBe(true);
 });
 
-test('@claim:offline-reload serves the app from its service worker while offline', async ({ browser }) => {
+test('@claim:offline-reload reloads and exports the demo offline before either export has been used', async ({ browser }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
   await withIsolatedPage(browser, async (page, context) => {
-    await page.goto('/');
+    const offlineRequests: string[] = [];
+    page.on('request', (request) => offlineRequests.push(new URL(request.url()).pathname));
+    await page.goto('/?demo=1');
     await page.evaluate(async () => { await navigator.serviceWorker.ready; });
     await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
-    await expect(page.getByText('Build a complete invoice evidence packet.')).toBeVisible();
     const cached = await page.evaluate(async () => {
       const keys = await caches.keys();
       const requests = await Promise.all(keys.map(async (key) => (await caches.open(key)).keys()));
-      return requests.flatMap((requests) => requests.map((request) => request.url));
+      return requests.flatMap((requests) => requests.map((request) => new URL(request.url).pathname));
     });
-    expect(cached.some((url) => /noto-sans|fontkit\.es/.test(url))).toBe(false);
+    const emittedModules = (await readdir(resolve('dist', '_app')))
+      .filter((file) => file.endsWith('.js'))
+      .map((file) => `/_app/${file}`);
+    expect(cached).toEqual(expect.arrayContaining(emittedModules));
+    expect(cached).toEqual(expect.arrayContaining([
+      '/assets/noto-sans-devanagari.ttf',
+      '/assets/noto-sans-jp.ttf',
+    ]));
+    expect(cached.some((path) => path.includes('-full.ttf'))).toBe(false);
+
+    // Neither export is requested until after the demo is controlled and the
+    // browser is offline. This is deliberately a fresh context because the
+    // promise is about a first-use export, not a warmed export library.
     await context.setOffline(true);
     await page.reload({ waitUntil: 'domcontentloaded' });
-    await expect(page.getByText('Build a complete invoice evidence packet.')).toBeVisible();
+    await expect(page.getByText('Demo — sample data, nothing is saved to your packets')).toBeVisible();
     await expect(page.locator('.network')).toHaveClass(/offline/);
+
+    const zipDownload = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export ZIP packet' }).click();
+    const zipPath = await (await zipDownload).path();
+    const zipReader = new ZipReader(new BlobReader(new Blob([new Uint8Array(await readFile(zipPath as string))])));
+    const zipEntries = await zipReader.getEntries();
+    const manifestEntry = zipEntries.find((entry) => entry.filename === 'manifest.json');
+    const manifest = JSON.parse(await manifestEntry?.getData?.(new TextWriter()) || '{}') as {
+      packet?: { title?: string };
+      evidence?: Array<{ status?: string }>;
+    };
+    expect(zipEntries.map((entry) => entry.filename)).toEqual(expect.arrayContaining([
+      'manifest.json', 'README.txt', 'evidence/INV-2026-042.txt',
+    ]));
+    expect(manifest.packet?.title).toBe('Kite Studio · August client review');
+    expect(manifest.evidence?.filter((item) => item.status === 'present')).toHaveLength(4);
+    await zipReader.close();
+
+    const pdfDownload = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export PDF manifest' }).click();
+    const pdfPath = await (await pdfDownload).path();
+    const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    const pdf = await getDocument({ data: new Uint8Array(await readFile(pdfPath as string)) }).promise;
+    const pageText = await (await pdf.getPage(1)).getTextContent();
+    const extracted = pageText.items.map((item) => ('str' in item ? item.str : '')).join(' ').replace(/\s+/g, ' ');
+    expect(extracted).toContain('Kite Studio · August client review');
+    expect(extracted).toContain('Aozora 株式会社');
+    await pdf.destroy();
+
+    expect(offlineRequests.some((path) => path.includes('-full.ttf'))).toBe(false);
   });
 });
 

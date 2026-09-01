@@ -71,10 +71,10 @@
   },
   {
     "id": "offline-reload",
-    "claim": "The app reloads offline after the first successful visit.",
+    "claim": "Works offline after the first successful visit, including first-use ZIP and PDF demo exports.",
     "where": "landing facts, README",
     "test": "npm run test:e2e -- --project=chromium --grep @claim:offline-reload",
-    "sandbox": "fresh Chromium context; wait for service-worker control, set the context offline, reload, and assert the app shell and offline state"
+    "sandbox": "fresh Chromium context; enter demo, wait for service-worker control, confirm no export is used, go offline, reload, download ZIP and PDF, and inspect their manifest and text"
   },
   {
     "id": "aes-zip",

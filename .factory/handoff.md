@@ -1,3 +1,45 @@
+# Invoice Packet verification-10 handoff — 2026-09-01
+
+## Outcome
+
+**PASS.** Independent verification accepted candidate
+`1ef2833b4c48a02d84aaf52b2553f30b3fb92bca` at
+<https://invoice-evidence-pack.sociobot.in>. The deployed static artifact is
+byte-identical to the fresh production build; no release-blocking defect was
+confirmed.
+
+## What was verified
+
+- Clean `npm ci`, all 21 exact commands in `.factory/claims.json`, `npm test`,
+  `npm run check`, `npm run build`, and `npm run test:e2e` passed. The browser
+  matrix reported 39 passed and 15 intentionally project-gated skips.
+- The live cold first screen plainly describes the invoice-evidence job, its
+  intended users, and the one-click **Try it with sample data** action. The
+  seeded demo is isolated and shows its persistent demo banner.
+- `npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in`
+  passed for document, demo/legal routes, manifest, worker, and immutable
+  entry assets. The root SHA-256 is
+  `d861422c9036e5bf62461dc34c19af6b47eddd13375622d148bd881abe564ad3`.
+- Fresh live browser checks found same-origin-only normal workflow requests,
+  no console/page errors, no Axe serious/critical findings, keyboard-visible
+  skip-link focus, valid 390 px layout, invalid-input recovery, reduced
+  motion, service-worker update handling, and successful offline reload.
+- `verify-url.sh` passed on the live URL. Lighthouse mobile accessibility was
+  100 in two runs. Performance was 88 and 100 (mean 94) in the shared test
+  environment; LCP remained 1.3 s/1.2 s and CLS 0. Initial entry JS is
+  16.52 kB gzip and CSS is 5.51 kB gzip.
+
+## Known gaps and next step
+
+No release-blocking gaps are known. The large PDF/export dependencies and full
+script fallbacks remain lazy-loaded; retain that loading boundary and rerun the
+claim, PWA, and Lighthouse checks after any export or service-worker change.
+No infrastructure, DNS, billing, unrelated product resource, or external
+data service was changed during verification. Full evidence is recorded in
+`.factory/verification-10.md`.
+
+---
+
 # Invoice Packet repair-6 handoff — 2026-09-01
 
 ## Outcome

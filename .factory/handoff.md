@@ -69,10 +69,20 @@ npm run test:e2e:repeat
 
 ## Delivery and scope
 
-Product repair commit: `b9aca8b618bf5aa2c56d29bb2a5213e1933765e3`; handoff
-commit: `6dfb493`. Push `main` to trigger the existing factory-managed static
-deployment, then run the repository's deployment identity verifier against the
-product origin once propagation completes.
+Product repair commit: `b9aca8b618bf5aa2c56d29bb2a5213e1933765e3`; initial
+handoff commit: `6dfb493`; pushed release commit: `efd5e92`.
+
+The product repository's `main` branch now contains the repair. The existing
+factory-managed static release path has not propagated yet: after the push,
+the live root still hashed to
+`85bc1018ac4b507e12482dcb1c852c5b56a35a5769ec18c140635ccf62068d15`, while
+the verified local artifact hashes to
+`d571526ba6da8c2f01cef996fc571ce1ba8d1d64df87c0186e1689477963db5d`.
+The supplied deployment helper also writes the shared `sociobot.in` DNS zone,
+which is outside this work order's permitted `sf-invoice-evidence-pack`
+resource scope, so it was deliberately not run. The factory deployment
+controller must publish the already-pushed commit; afterward run
+`npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in`.
 
 No Sociobot API, billing endpoint, secret, app setting, database, or unrelated
 service was read or contacted. The only browser network checks were against

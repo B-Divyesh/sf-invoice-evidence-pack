@@ -11,6 +11,7 @@
     "test:e2e": "playwright test",
     "test:e2e:repeat": "playwright test --repeat-each=2",
     "verify:deployment": "node scripts/verify-deployment.mjs",
+    "verify:live": "node scripts/verify-live.mjs",
     "check": "tsc -b"
   },
   "dependencies": {

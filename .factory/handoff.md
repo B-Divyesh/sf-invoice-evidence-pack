@@ -1,132 +1,34 @@
-# Invoice Packet review-1 handoff — 2026-09-01
+# Invoice Packet polish-1 handoff — 2026-09-01
 
 ## Outcome
 
-Review 1 is **FAIL**. No product code was modified. The committed review is
-in [`.factory/review-1.md`](review-1.md).
+Repaired every finding in review 1 for release candidate
+`057597d9c102a8901b4d86ff068b45d189814009`. The product remains a static,
+local-first PWA that builds to `dist/`.
 
-## What was checked
+Repair commit: `7f58b9b0e8328bdf3e2cefb5e213b9c0d08a8e2e`.
 
-- Fresh live first-read checks at 390px and desktop, including the one-click
-  sample workspace, reset control, separate demo IndexedDB name, and request
-  log.
-- Every command listed in `.factory/claims.json`; all 18 passed.
-- `npm test`, `npm run check`, `npm run build`, and `npm run test:e2e`; all
-  passed and the build produced `dist/`.
-- Same-origin route, header, metadata, 404, response-policy, history, mobile,
-  accessibility, and copy checks.
+## Delivered
 
-## Findings and next steps
-
-The review records one blocking evidence gap for the paid-checkout availability
-claim, one high route-focus issue, one medium 404 metadata issue, and plain
-language/copy findings. Implement the concrete fixes in `review-1.md`, then
-run the full review again from a fresh browser context. The external billing
-route was not requested because it is outside the permitted connection scope.
-
----
-
-# Previous Invoice Packet verification handoff — 2026-09-01
-
-> **Verification 8 supersedes the earlier repair handoff below.** Candidate
-> `057597d9c102a8901b4d86ff068b45d189814009` at
-> <https://invoice-evidence-pack.sociobot.in> is **PASS** for release
-> acceptance. The deployed artifacts match the candidate build; all 18 claims,
-> all local tests and repeat browser tests, accessibility, privacy, mobile, and
-> offline PWA checks pass. No code was modified during verification. See
-> [verification-8.md](verification-8.md) for exact commands, hashes, and
-> evidence.
-
-## Outcome
-
-Repaired every release blocker in independent verification 7 for work order
-`invoice-evidence-pack-repair-5`. The product remains the same static,
-local-first PWA and builds to `dist/`.
-
-## Repairs
-
-1. **Damaged JSON backups now give a plain recovery step.** `parseBackup()`
-   catches JSON syntax failures at the import boundary and returns: “This
-   backup file is damaged or not valid JSON. Choose an Invoice Packet JSON
-   backup and try again.” Existing packets and templates are not replaced
-   unless parsing succeeds. Valid-but-unsupported backups still use the
-   existing “not a supported Invoice Packet backup” explanation.
-2. **Binary sizes use binary units.** Evidence controls and over-limit errors
-   say `100 MiB`; displayed binary file sizes now use `KiB` and `MiB`, so the
-   accepted `104,857,600` byte boundary displays as `100.0 MiB`.
-3. **Regression coverage is exact and browser-based.** The new Playwright
-   scenario imports the verifier's `{not valid` bytes after confirming
-   replacement, checks the recovery text, checks that Chromium's parser text
-   is absent, reloads, and confirms the original packet persists. Unit tests
-   cover the normalized parser error and the 100 MiB display boundary. The
-   independent browser smoke owns and removes its own sparse 100 MiB + 1 byte
-   fixture.
+- Replaced the unproven new-customer checkout promise with an honest,
+  operator-gated build flag. The released default has no checkout link and
+  gives existing license holders a tested restore path.
+- Added route-specific metadata, real internal History API navigation, heading
+  focus, and polite announcements for route changes and browser Back.
+- Completed the styled 404 document metadata, changed its heading to `Page not
+  found`, and added consistent navigation and legal footer links.
+- Rewrote all review-flagged landing and README copy. The updated copy audit is
+  in `.factory/copy-audit.md`; the catalog description is verb-first and 88
+  characters.
+- Replaced the checkout claim with `license-restore` and
+  `checkout-operator-gate`; added claims/tests for clean core setup and the
+  minimal license-verification payload. There are 21 declared claims.
+- Recorded each review finding, change, and evidence in
+  `.factory/polish-1.md`.
 
 ## Verification
 
-Clean install and full local matrix completed on 2026-09-01:
-
-```sh
-npm ci
-npm audit --omit=dev
-npm test
-npm run check
-npm run build
-npm run test:e2e
-npm run test:e2e:repeat
-```
-
-- `npm ci`: 140 packages installed; `npm audit --omit=dev`: 0 vulnerabilities.
-- `npm test`: 2 files, 11 tests passed.
-- `npm run check` and production build passed; `dist/index.html` exists.
-- `npm run test:e2e` and `npm run test:e2e:repeat` passed. The repeat runner
-  recorded `status: passed`; it covers desktop and 390 px mobile Chromium,
-  keyboard/focus, invalid states, persistence, ZIP/PDF/JSON exports,
-  encryption, demo isolation, privacy requests, offline reload, and update
-  behavior.
-- `node .qa-independent.mjs`: normal workflow, actual 100 MiB + 1 byte
-  rejection, keyboard focus, reduced motion, persistence, offline reload,
-  and no console errors or third-party requests passed.
-- `node .qa-axe-mobile.mjs`: desktop and 390 px mobile light/dark scans had
-  zero serious/critical Axe violations, no console errors, exactly one `h1`,
-  and no horizontal overflow.
-- `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4174`: returned 200 with a
-  title, `lang=en`, one `h1`, a `main`, complete image alt text, named
-  buttons, and zero console/page errors (636 ms load).
-- `npm run verify:deployment -- http://127.0.0.1:4174` passed the configured
-  static response policy, immutable hashed assets, and byte identity. Local
-  SHA-256: root/demo/privacy/terms
-  `d571526ba6da8c2f01cef996fc571ce1ba8d1d64df87c0186e1689477963db5d`;
-  worker `7c17d899cca1e658ffd6b9b974e4acbc88409a59006670af6b3376f108fbffb8`;
-  manifest `4e66e893cd05bf6edc41541d0f4005eeab866856add85518dc02cd6365dfab83`.
-- Local mobile Lighthouse 13.4.1: Performance 100, Accessibility 100, Best
-  Practices 100, SEO 100; FCP 1,103 ms, LCP 1,507 ms, TBT 0 ms, CLS 0.
-  Initial entry JS is 46.99 kB (16.28 kB gzip); CSS is 21.30 kB (5.51 kB
-  gzip).
-
-## Delivery and scope
-
-Product repair commit: `b9aca8b618bf5aa2c56d29bb2a5213e1933765e3`; initial
-handoff commit: `6dfb493`; pushed release commit: `efd5e92`.
-
-The product repository's `main` branch now contains the repair. The existing
-factory-managed static release path has not propagated yet: after the push,
-the live root still hashed to
-`85bc1018ac4b507e12482dcb1c852c5b56a35a5769ec18c140635ccf62068d15`, while
-the verified local artifact hashes to
-`d571526ba6da8c2f01cef996fc571ce1ba8d1d64df87c0186e1689477963db5d`.
-The supplied deployment helper also writes the shared `sociobot.in` DNS zone,
-which is outside this work order's permitted `sf-invoice-evidence-pack`
-resource scope, so it was deliberately not run. The factory deployment
-controller must publish the already-pushed commit; afterward run
-`npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in`.
-
-No Sociobot API, billing endpoint, secret, app setting, database, or unrelated
-service was read or contacted. The only browser network checks were against
-the locally served product. There is no backend, package consumer, CLI, or
-database migration applicable to this static PWA.
-
-## Reproduce
+From a clean dependency install:
 
 ```sh
 npm ci
@@ -135,5 +37,42 @@ npm run check
 npm run build
 npm run test:e2e
 npm run test:e2e:repeat
-npm run verify:deployment -- http://127.0.0.1:4174
 ```
+
+All commands passed.
+
+- Unit suite: 11/11 passed.
+- Full browser suite: 48/48 passed; repeat suite: 96/96 passed.
+- Every exact command in `.factory/claims.json` passed, covering all 21 claim
+  IDs from clean state.
+- `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4174
+  .factory/evidence/local` passed: 638 ms local cold load, zero console errors,
+  title/lang/main/one-h1/alt/button checks passed. Screenshots and JSON output
+  are committed under `.factory/evidence/local/`.
+- Playwright Axe checks in the suite found zero serious or critical issues on
+  desktop/mobile, empty/editor, and both themes. The standalone Axe CLI could
+  not locate a Selenium Chrome binary in this container; the pinned Playwright
+  Axe integration completed successfully.
+- `npm run verify:deployment -- http://127.0.0.1:4174` passed response-policy
+  and byte-identity checks. The root hash was
+  `b9fd2e610b102cca04867ae525e1e628dbbb5fb49b2f9da0cab58eb958b3090e`.
+- Initial entry JavaScript is 48.30 kB raw / 16.53 kB gzip; CSS is 21.30 kB raw
+  / 5.51 kB gzip. Export code remains lazy-loaded.
+
+## Deployment
+
+The repository is ready to publish as the existing static `dist/` artifact.
+The product contract reserves deployment infrastructure for the factory; no
+infrastructure, DNS, billing resource, database, or unrelated Sociobot service
+was read, changed, or contacted during this repair. Push the committed `main`
+branch through the factory static deployment controller, then run:
+
+```sh
+npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
+```
+
+## Known gaps
+
+None in the repository release scope. New-license checkout intentionally stays
+hidden until the product operator confirms the registered hosted checkout and
+enables `VITE_CHECKOUT_ENABLED=true` for a release.

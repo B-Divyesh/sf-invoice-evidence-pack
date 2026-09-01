@@ -1,4 +1,13 @@
-# Invoice Packet repair handoff — 2026-09-01
+# Invoice Packet verification handoff — 2026-09-01
+
+> **Verification 8 supersedes the earlier repair handoff below.** Candidate
+> `057597d9c102a8901b4d86ff068b45d189814009` at
+> <https://invoice-evidence-pack.sociobot.in> is **PASS** for release
+> acceptance. The deployed artifacts match the candidate build; all 18 claims,
+> all local tests and repeat browser tests, accessibility, privacy, mobile, and
+> offline PWA checks pass. No code was modified during verification. See
+> [verification-8.md](verification-8.md) for exact commands, hashes, and
+> evidence.
 
 ## Outcome
 

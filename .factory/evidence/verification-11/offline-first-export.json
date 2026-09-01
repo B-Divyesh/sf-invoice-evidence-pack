@@ -1,0 +1,43 @@
+{
+  "before": {
+    "resources": [
+      "https://invoice-evidence-pack.sociobot.in/assets/hero-field-guide-768.webp",
+      "https://invoice-evidence-pack.sociobot.in/_app/index-CIV_UaU8.js",
+      "https://invoice-evidence-pack.sociobot.in/_app/index-BVbODO2q.css",
+      "https://invoice-evidence-pack.sociobot.in/icons/mark.svg"
+    ],
+    "caches": [
+      "invoice-packet-1431eb942f2d"
+    ]
+  },
+  "results": {
+    "zip": {
+      "downloads": [],
+      "toast": "The ZIP could not be prepared. Try again or export a backup."
+    },
+    "pdf": {
+      "downloads": [],
+      "toast": "The PDF could not be prepared. Try the ZIP manifest instead."
+    }
+  },
+  "failed": [
+    {
+      "url": "https://invoice-evidence-pack.sociobot.in/_app/index-CxjpqVDI.js",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "https://invoice-evidence-pack.sociobot.in/_app/runtime-DdLkqw21.js",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "https://invoice-evidence-pack.sociobot.in/_app/_commonjsHelpers-CqkleIqs.js",
+      "error": "net::ERR_FAILED"
+    }
+  ],
+  "errors": [
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED"
+  ],
+  "offlineStatus": "Offline"
+}

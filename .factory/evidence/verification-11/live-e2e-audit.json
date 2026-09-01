@@ -1,0 +1,83 @@
+{
+  "invalid": {
+    "message": "Enter a packet name that contains at least one non-space character.",
+    "focused": true,
+    "ariaInvalid": "true"
+  },
+  "packet": {
+    "progress": "4 of 4 required items collected",
+    "preservedAfterBadImport": true
+  },
+  "download": {
+    "redactionSelected": true,
+    "suggestedFilename": "QA-payment-trail-INV-900.zip",
+    "entries": [
+      "manifest.json",
+      "README.txt",
+      "evidence/01-evidence.txt",
+      "evidence/02-evidence.txt",
+      "evidence/03-evidence.txt",
+      "evidence/04-evidence.txt"
+    ],
+    "manifestCompletion": {
+      "complete": true,
+      "requiredPresent": 4,
+      "requiredTotal": 4,
+      "percent": 100
+    },
+    "manifestEvidence": [
+      {
+        "filename": "01-evidence.txt",
+        "status": "present",
+        "redacted": true,
+        "sha256Length": 64
+      },
+      {
+        "filename": "02-evidence.txt",
+        "status": "present",
+        "redacted": true,
+        "sha256Length": 64
+      },
+      {
+        "filename": "03-evidence.txt",
+        "status": "present",
+        "redacted": true,
+        "sha256Length": 64
+      },
+      {
+        "filename": "04-evidence.txt",
+        "status": "present",
+        "redacted": true,
+        "sha256Length": 64
+      },
+      {
+        "filename": null,
+        "status": "not-provided-optional",
+        "redacted": false
+      }
+    ]
+  },
+  "evidenceContents": [
+    {
+      "name": "evidence/01-evidence.txt",
+      "text": "independent evidence 1"
+    },
+    {
+      "name": "evidence/02-evidence.txt",
+      "text": "independent evidence 2"
+    },
+    {
+      "name": "evidence/03-evidence.txt",
+      "text": "independent evidence 3"
+    },
+    {
+      "name": "evidence/04-evidence.txt",
+      "text": "independent evidence 4"
+    }
+  ],
+  "requestOrigins": [
+    "https://invoice-evidence-pack.sociobot.in"
+  ],
+  "externalRequests": [],
+  "errors": []
+}

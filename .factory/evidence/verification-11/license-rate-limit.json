@@ -1,0 +1,12 @@
+{
+  "endpoint": "https://api.sociobot.in/api/v1/products/invoice-evidence-pack/verify",
+  "client_sequence": {
+    "status_200_count": 30,
+    "first_429_request": 31
+  },
+  "first_429": {
+    "retry_after": "4",
+    "x_ratelimit_after": "4"
+  },
+  "verified_at": "2026-09-01T23:00:12Z"
+}

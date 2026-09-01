@@ -1,0 +1,386 @@
+{
+  "origin": "https://invoice-evidence-pack.sociobot.in",
+  "scenarios": {
+    "desktop-light": {
+      "status": 200,
+      "rootSeriousCritical": [],
+      "demoSeriousCritical": [],
+      "allRootViolationIds": [],
+      "allDemoViolationIds": [],
+      "layout": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "h1": 1,
+        "main": 1,
+        "smallTargets": [
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          }
+        ]
+      },
+      "requestOrigins": [
+        "https://invoice-evidence-pack.sociobot.in"
+      ],
+      "externalRequests": [],
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failed": []
+    },
+    "mobile-light": {
+      "status": 200,
+      "rootSeriousCritical": [],
+      "demoSeriousCritical": [],
+      "allRootViolationIds": [],
+      "allDemoViolationIds": [],
+      "layout": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "h1": 1,
+        "main": 1,
+        "smallTargets": [
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          }
+        ]
+      },
+      "requestOrigins": [
+        "https://invoice-evidence-pack.sociobot.in"
+      ],
+      "externalRequests": [],
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failed": []
+    },
+    "desktop-dark": {
+      "status": 200,
+      "rootSeriousCritical": [],
+      "demoSeriousCritical": [],
+      "allRootViolationIds": [],
+      "allDemoViolationIds": [],
+      "layout": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "h1": 1,
+        "main": 1,
+        "smallTargets": [
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 26,
+            "h": 22
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          },
+          {
+            "tag": "INPUT",
+            "text": "",
+            "w": 20,
+            "h": 20
+          }
+        ]
+      },
+      "requestOrigins": [
+        "https://invoice-evidence-pack.sociobot.in"
+      ],
+      "externalRequests": [],
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failed": []
+    }
+  },
+  "keyboard": {
+    "firstTab": {
+      "tag": "A",
+      "text": "Skip to main content",
+      "href": "#main",
+      "outline": "rgb(155, 94, 18) solid 3px",
+      "outlineWidth": "3px",
+      "outlineColor": "rgb(155, 94, 18)"
+    },
+    "skipTarget": {
+      "id": "",
+      "tag": "BODY"
+    },
+    "tabSequence": [
+      {
+        "tag": "A",
+        "text": "Skip to main content"
+      },
+      {
+        "tag": "A",
+        "text": "Invoice Packet"
+      },
+      {
+        "tag": "A",
+        "text": "Packets"
+      },
+      {
+        "tag": "A",
+        "text": "Demo"
+      },
+      {
+        "tag": "A",
+        "text": "Privacy"
+      },
+      {
+        "tag": "A",
+        "text": "Terms"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Switch color theme"
+      },
+      {
+        "tag": "A",
+        "text": "Try it with sample data"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Start your first packet"
+      }
+    ],
+    "dialogOpened": true,
+    "nameReached": true,
+    "invalidRecovery": {
+      "focused": true,
+      "ariaInvalid": "true",
+      "describedBy": "packet-name-error"
+    }
+  },
+  "reducedMotion": {
+    "matches": true,
+    "scrollBehavior": "auto"
+  },
+  "offline": {
+    "before": {
+      "controller": "https://invoice-evidence-pack.sociobot.in/sw.js",
+      "caches": [
+        "invoice-packet-1431eb942f2d"
+      ],
+      "reg": true
+    },
+    "update": {
+      "active": "activated",
+      "installing": null,
+      "waiting": null
+    },
+    "url": "https://invoice-evidence-pack.sociobot.in/?demo=1",
+    "status": null,
+    "h1": "Your packets",
+    "errors": []
+  }
+}

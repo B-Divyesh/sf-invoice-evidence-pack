@@ -61,11 +61,19 @@ All commands passed.
 
 ## Deployment
 
-The repository is ready to publish as the existing static `dist/` artifact.
-The product contract reserves deployment infrastructure for the factory; no
-infrastructure, DNS, billing resource, database, or unrelated Sociobot service
-was read, changed, or contacted during this repair. Push the committed `main`
-branch through the factory static deployment controller, then run:
+The repair branch and handoff were pushed to `origin/main`. The product
+contract reserves deployment infrastructure for the factory; no infrastructure,
+DNS, billing resource, database, or unrelated Sociobot service was read,
+changed, or contacted during this repair.
+
+At 20:12 UTC, repeated cold checks of the product's own live URL still returned
+the earlier root hash
+`d571526ba6da8c2f01cef996fc571ce1ba8d1d64df87c0186e1689477963db5d`, rather
+than this repair's verified local root hash
+`b9fd2e610b102cca04867ae525e1e628dbbb5fb49b2f9da0cab58eb958b3090e`. No
+scoped deployment command or work-order deployment configuration is present in
+this repository. The factory static deployment controller must publish the
+pushed branch, then run:
 
 ```sh
 npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
@@ -73,6 +81,7 @@ npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
 
 ## Known gaps
 
-None in the repository release scope. New-license checkout intentionally stays
-hidden until the product operator confirms the registered hosted checkout and
-enables `VITE_CHECKOUT_ENABLED=true` for a release.
+Repository work is complete. Live publication is pending the factory static
+deployment controller. New-license checkout intentionally stays hidden until
+the product operator confirms the registered hosted checkout and enables
+`VITE_CHECKOUT_ENABLED=true` for a release.

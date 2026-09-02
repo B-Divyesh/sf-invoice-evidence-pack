@@ -1,33 +1,59 @@
-# Invoice Packet review-5 handoff — 2026-09-02
+# Invoice Packet polish-5 handoff — 2026-09-02
 
 ## Outcome
 
-**FAIL.** No product code or deployment was changed. The review report is in
-[`.factory/review-5.md`](review-5.md).
+**PASS.** Every finding from reviews 1–5 is fixed and rechecked on the live
+site. The product remains a local-first static PWA with its botanical
+field-guide identity intact.
 
-## Findings
+## Changes
 
-- **F-5-1 (BLOCKING):** the landing’s primary **Try it with sample data**
-  action enters demo with focus left on `<body>` and no route announcement.
-- **F-5-2 through F-5-4:** three Terms billing/license statements have no
-  declared claim or test.
+- The first-screen **Try it with sample data** action now opens the isolated
+  `?demo=1` workspace, focuses **Your packets**, and announces the route.
+- Added fixture-backed `license-revocation` and `offline-license-verdict`
+  claims. Revoked verdicts lock paid tools; saved valid licenses work offline
+  and recheck after reconnection.
+- Removed the unprovable merchant/refund statement while checkout remains
+  disabled.
+- Made IndexedDB writes await transaction completion, preventing an immediate
+  reload from racing a newly saved packet.
+- Updated the 97-character verb-first catalog description and expanded the
+  copy audit with every README sentence and the retained Terms statements.
 
-## Verification completed
+## Verification
 
-- Fresh clone at `e12e7a0f28c079d65997b1f78129af023278df68`; `npm ci` passed.
-- Replayed all 23 exact commands declared in `.factory/claims.json`; all
-  passed.
-- Passed: `npm test` (11 tests), `npm run check`, `npm run build`,
-  `npm run test:e2e` (66 tests), `npm run test:e2e:repeat` (132 tests), and
-  `npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in`.
-- Live fresh-browser checks covered desktop and 390px mobile first screen,
-  demo sample/reset/banner, same-origin requests, metadata, 404, link crawl,
-  route focus, and prior-review regressions.
+- Clean clone: `/tmp/invoice-polish5-clean-3TSRiv` at repair commit `cdf83ed`.
+- All 25 exact commands in `.factory/claims.json` passed after `npm ci`.
+- `npm test`: 11/11 passed; `npm run check` and `npm run build` passed.
+- `npm run test:e2e`: 52 passed, 20 intended project skips.
+- `npm run test:e2e:repeat`: 104 passed, 40 intended project skips in a fresh
+  browser process.
+- Browser coverage includes desktop/mobile, both themes, keyboard focus,
+  dialogs, downloads, request privacy, offline reload, and Axe serious/critical
+  checks.
+- Initial entry JavaScript is 49.21 kB (16.69 kB gzip); CSS is 21.30 kB
+  (5.51 kB gzip). Export libraries remain lazy-loaded.
+- Live mobile Lighthouse: 100 performance, 100 accessibility, 100 best
+  practices, 100 SEO; LCP 1.1 s, TBT 0 ms, CLS 0.
+- The live verifier found no console errors, failed requests, third-party demo
+  requests, mobile overflow, or serious/critical Axe findings. It also passed
+  demo reset/isolation, route focus, license fixtures, offline reload, metadata,
+  the 404, and no-account export.
+- The deployment verifier confirmed byte identity and response policy for the
+  tested build.
 
-## Next steps
+Evidence is under [`.factory/evidence/polish-5/`](evidence/polish-5/). The
+finding-by-finding record is [`.factory/polish-5.md`](polish-5.md).
 
-1. Repair and test the hero demo CTA focus/announcement behavior.
-2. Add fixture-backed claim entries/tests for the three Terms statements, or
-   remove them.
-3. Run the entire review checklist again; do not treat this handoff as a
-   release pass.
+## Release
+
+- Code commit: `cdf83ed`
+- Static Web Apps deployment: `264aead9-56ff-427b-9cab-33c6d3d48a70`
+- Live URL: <https://invoice-evidence-pack.sociobot.in>
+- Cold root, `?demo=1`, `/demo/`, `/privacy/`, `/terms/`, manifest, robots,
+  sitemap, and source links returned 200. An unknown route returned the
+  designed 404.
+
+## Known gaps and next steps
+
+None.

@@ -16,7 +16,7 @@ of the banned plain-language terms.
 | Prepare one packet in three steps. | 6 | Pass |
 | Start with a filing, client review, or payment trail list. | 10 | Pass |
 | Change it to match the request. | 6 | Pass |
-| Each file stays in this browser and receives a SHA-256 fingerprint. | 10 | Pass |
+| Each file stays in this browser and receives a SHA-256 fingerprint. | 11 | Pass |
 | Download the evidence and manifest as ZIP, or make a PDF index. | 12 | Pass |
 | No document cloud and no account. | 6 | Pass — `no-document-backend`, `no-account-required` |
 | SHA-256 fingerprints travel with the manifest. | 6 | Pass — `manifest-fingerprints` |
@@ -37,24 +37,48 @@ notes, and export terms as the landing page.
 
 | Sentence | Words | Result |
 | --- | ---: | --- |
-| Create one invoice packet for a client review or filing. | 11 | Pass |
+| Create one invoice packet for a client review or filing. | 10 | Pass |
 | Add evidence files, check what is missing, and export a ZIP or PDF manifest. | 14 | Pass |
-| Store packets and files in this browser. | 8 | Pass |
-| It does not upload packet files or use analytics. | 10 | Pass |
+| Start from a cross-border filing, client review, or payment trail checklist. | 11 | Pass — `configurable-checklists` |
+| Store packets and files in this browser. | 7 | Pass — `local-only` |
+| It does not upload packet files or use analytics. | 9 | Pass — `no-document-backend` |
 | Create a SHA-256 fingerprint for each evidence file and include it in the manifest. | 14 | Pass — `manifest-fingerprints` |
+| Export plain ZIP packets, PDF manifests, and full JSON backups for free. | 12 | Pass — `free-exports`, `json-backup` |
+| Keep distinct ZIP entries when evidence files share a filename. | 10 | Pass — `duplicate-zip` |
+| Preserve Devanagari and Japanese packet metadata in PDF text. | 9 | Pass — `unicode-pdf` |
+| Redact original filenames in exports when requested. | 7 | Pass — `filename-redaction` |
+| Import a complete JSON backup on another browser. | 8 | Pass — `backup-import` |
 | Install the app and reopen it offline after your first visit. | 11 | Pass |
-| Restore an existing license for encrypted ZIPs and reusable checklist templates. | 10 | Pass |
+| Restore an existing license for encrypted ZIPs and reusable checklist templates. | 11 | Pass |
 | ZIP, PDF, and JSON backup exports work without a license. | 10 | Pass |
-| Choose and edit a checklist for your review. | 9 | Pass |
-| Invoice Packet does not give tax or legal advice, or submit filings. | 13 | Pass |
+| “Complete” means every required item has an attachment. | 8 | Pass — `missing-flags` |
+| Choose and edit a checklist for your review. | 8 | Pass |
+| Invoice Packet does not give tax or legal advice, or submit filings. | 12 | Pass |
+| Requirements: Node.js 20+ and npm. | 5 | Pass |
+| Vite prints the local URL. | 5 | Pass |
 | Create and export a packet without an API key or external service. | 12 | Pass |
+| The production build command is `npm run build`. | 8 | Pass |
+| Output lands in `dist/`, with `dist/index.html` at its root. | 9 | Pass |
 | End-to-end tests use Playwright 1.58.2 on desktop and 390px Chromium. | 10 | Pass |
-| They check persistence, downloads, accessibility, legal routes, and offline reload. | 9 | Pass |
+| They check persistence, downloads, accessibility, legal routes, and offline reload. | 10 | Pass |
 | New-license checkout is disabled by default. | 6 | Pass |
 | An operator enables it only after testing the registered hosted checkout. | 11 | Pass |
+| The product uses the billing product slug. | 7 | Pass |
+| It does not contain a payment-provider key or product ID. | 10 | Pass |
+| Deploy `dist/` as a static site. | 6 | Pass |
 | The build includes Privacy and Terms routes and a versioned offline cache. | 12 | Pass |
-| `staticwebapp.config.json` supplies the static hosting headers. | 5 | Pass |
+| `staticwebapp.config.json` supplies the static hosting headers. | 6 | Pass |
+| The factory owns DNS and infrastructure. | 6 | Pass |
+| After deployment, verify response policy and byte identity against the local build. | 12 | Pass |
+| Files stay on the device unless the user exports them. | 10 | Pass — `local-only` |
+| Browser data clearing can remove local storage, so use “Back up all data” before clearing it. | 16 | Pass |
 | License verification sends the license token, not packet files or filenames. | 11 | Pass |
+| See the in-product Privacy and Terms pages for details. | 9 | Pass |
+| The botanical field-guide visual system and artwork provenance are documented in [`.factory/design.md`](.factory/design.md). | 12 | Pass |
+| The source illustration and prompt sidecar live under `assets/src/`. | 9 | Pass |
+| Optimized runtime assets live under `public/assets/`. | 6 | Pass |
+| PDF export font licenses are recorded in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). | 8 | Pass |
+| MIT — see [LICENSE](LICENSE). | 4 | Pass |
 
 ## Terminology
 

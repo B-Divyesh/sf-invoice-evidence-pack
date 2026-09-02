@@ -1,6 +1,6 @@
 # Copy audit
 
-Audited 1 September 2026. Counts use space-delimited words; hyphenated terms
+Audited 2 September 2026. Counts use space-delimited words; hyphenated terms
 count as one word. Every sentence below is 22 words or fewer and contains none
 of the banned plain-language terms.
 
@@ -19,13 +19,13 @@ of the banned plain-language terms.
 | Each file stays in this browser and receives a SHA-256 fingerprint. | 10 | Pass |
 | Download the evidence and manifest as ZIP, or make a PDF index. | 12 | Pass |
 | No document cloud and no account. | 6 | Pass — `no-document-backend`, `no-account-required` |
-| SHA-256 fingerprints travel with the manifest. | 6 | Pass |
+| SHA-256 fingerprints travel with the manifest. | 6 | Pass — `manifest-fingerprints` |
 | Plain ZIP, PDF, and full JSON backup are free. | 9 | Pass |
 | Build a checked evidence packet without uploading your files. | 9 | Pass |
 
 Headings, labels, and actions: **Private invoice evidence packets**, **Try it
 with sample data**, **Start your first packet**, **Storage and export privacy**,
-**File fingerprints in each manifest**, **Download ZIP, PDF, or JSON backup**,
+**File fingerprints in each manifest** (`manifest-fingerprints`), **Download ZIP, PDF, or JSON backup**,
 and **Restore an existing license**. Each names the task or result directly.
 
 Workspace headings and labels: **Saved packets**, **New packet**, **Packet
@@ -41,6 +41,7 @@ notes, and export terms as the landing page.
 | Add evidence files, check what is missing, and export a ZIP or PDF manifest. | 14 | Pass |
 | Store packets and files in this browser. | 8 | Pass |
 | It does not upload packet files or use analytics. | 10 | Pass |
+| Create a SHA-256 fingerprint for each evidence file and include it in the manifest. | 14 | Pass — `manifest-fingerprints` |
 | Install the app and reopen it offline after your first visit. | 11 | Pass |
 | Restore an existing license for encrypted ZIPs and reusable checklist templates. | 10 | Pass |
 | ZIP, PDF, and JSON backup exports work without a license. | 10 | Pass |

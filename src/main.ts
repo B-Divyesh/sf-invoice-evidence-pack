@@ -21,6 +21,7 @@ let updateWorker: ServiceWorker | undefined;
 let applyingUpdate = false;
 const demoMode = /^\/demo\/?$/.test(location.pathname) || new URLSearchParams(location.search).get('demo') === '1';
 const themeStorageKey = demoMode ? 'demo:invoice-packet-theme' : 'invoice-packet-theme';
+const routeFocusMarkerKey = 'invoice-packet:route-focus';
 
 function icon(name: 'plus' | 'leaf' | 'file' | 'download' | 'lock' | 'trash' | 'sun' | 'menu'): string {
   const paths = {
@@ -40,7 +41,7 @@ function header(): string {
   return `<header class="site-header">
     <a class="brand" href="/" aria-label="Invoice Packet home"><img src="/icons/mark.svg" width="38" height="38" alt=""><span>Invoice Packet</span></a>
     <nav aria-label="Primary">
-      <a href="/" data-route>Packets</a><a href="/demo/">Demo</a><a href="/privacy/" data-route>Privacy</a><a href="/terms/" data-route>Terms</a>
+      <a href="/" data-route>Packets</a><a href="/demo/" data-full-route-focus>Demo</a><a href="/privacy/" data-route>Privacy</a><a href="/terms/" data-route>Terms</a>
     </nav>
     <div class="header-tools">
       <span class="network ${online ? '' : 'offline'}" role="status"><span></span>${online ? 'Local first' : 'Offline'}</span>
@@ -50,7 +51,7 @@ function header(): string {
 }
 
 function footer(): string {
-  return `<footer><div><strong>Invoice Packet</strong><p>Build a checked evidence packet without uploading your files.</p></div><div class="footer-links"><a href="/privacy/" data-route>Privacy</a><a href="/terms/" data-route>Terms</a><a href="https://github.com/B-Divyesh/sf-invoice-evidence-pack" target="_blank" rel="noreferrer">Source</a></div><p class="provenance">Built by Param Factory · v1.1.0</p></footer>`;
+  return `<footer><div><strong>Invoice Packet</strong><p>Build a checked evidence packet without uploading your files.</p></div><div class="footer-links"><a href="/privacy/" data-route>Privacy</a><a href="/terms/" data-route>Terms</a><a href="https://github.com/B-Divyesh/sf-invoice-evidence-pack" target="_blank" rel="noopener noreferrer" aria-label="Source on GitHub (opens in a new tab)">Source on GitHub <span aria-hidden="true">↗</span></a></div><p class="provenance">Built by Param Factory · v1.1.0</p></footer>`;
 }
 
 function legalPage(kind: 'privacy' | 'terms'): string {
@@ -359,6 +360,16 @@ function bindGlobalEvents(): void {
     event.preventDefault();
     navigate(link.href);
   }));
+  // Demo uses a separate IndexedDB namespace, so this transition deliberately
+  // loads a new document. Preserve the same focus contract as in-app routes
+  // across that document boundary and again when the visitor goes Back.
+  document.querySelectorAll<HTMLAnchorElement>('a[data-full-route-focus]').forEach((link) => link.addEventListener('click', (event) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    try {
+      const destination = new URL(link.href, location.origin);
+      sessionStorage.setItem(routeFocusMarkerKey, `${destination.pathname}${destination.search}`);
+    } catch { /* Storage can be unavailable in private browser modes. */ }
+  }));
   document.querySelectorAll<HTMLElement>('[data-action]').forEach((element) => element.addEventListener('click', () => void handleAction(element)));
   document.querySelectorAll<HTMLButtonElement>('[data-close-dialog]').forEach((button) => button.addEventListener('click', () => button.closest('dialog')?.close()));
   document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[data-field]').forEach((input) => input.addEventListener('change', async () => {
@@ -505,11 +516,15 @@ async function initialize(): Promise<void> {
   if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.dataset.theme = savedTheme;
   if (demoMode) licensed = true;
   else { captureReturnedLicense(); licensed = hasOptimisticLicense(); }
+  const initialRouteFocus = shouldFocusInitialRoute();
   render();
   // A demo can visit Privacy or Terms without leaving its isolated data
   // namespace. Back/Forward must therefore use the same focus and polite
   // announcement behaviour as the normal workspace.
   window.addEventListener('popstate', () => render(true));
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) render(true);
+  });
   window.addEventListener('online', () => { online = true; render(); });
   window.addEventListener('offline', () => { online = false; render(); });
   try {
@@ -521,10 +536,22 @@ async function initialize(): Promise<void> {
     }
     selectedId = packets[0]?.id || '';
   } catch (cause) { storageError = cause instanceof Error ? cause.message : 'This browser did not provide persistent local storage.'; }
-  loading = false; render(); void registerServiceWorker();
+  loading = false; render(initialRouteFocus); void registerServiceWorker();
   if (!demoMode && licensed && navigator.onLine) {
     try { const result = await verifyLicense(); if (!result.valid) { licensed = false; render(); announce('This license is no longer active. Free tools remain available.'); } } catch { /* cached offline access remains */ }
   }
+}
+
+function shouldFocusInitialRoute(): boolean {
+  const current = `${location.pathname}${location.search}`;
+  try {
+    if (sessionStorage.getItem(routeFocusMarkerKey) === current) {
+      sessionStorage.removeItem(routeFocusMarkerKey);
+      return true;
+    }
+  } catch { /* Focus behavior still works for history restores below. */ }
+  const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+  return navigation?.type === 'back_forward';
 }
 
 void initialize();

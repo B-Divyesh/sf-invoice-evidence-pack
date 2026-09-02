@@ -14,6 +14,7 @@ const result = {
   firstScreen: {},
   demo: {},
   routes: {},
+  footer: {},
   noAccount: {},
   mobile: {},
   offline: {},
@@ -53,6 +54,23 @@ try {
   }));
   assert(result.firstScreen.h1.length === 1 && result.firstScreen.h1[0] === 'Build a complete invoice evidence packet.', 'First screen h1 is wrong.');
   assert(result.firstScreen.demoHref === '/?demo=1' && result.firstScreen.primaryVisible, 'One-click query demo action is missing.');
+
+  const sourceLink = page.getByRole('link', { name: 'Source on GitHub (opens in a new tab)' });
+  assert(await sourceLink.getAttribute('target') === '_blank', 'The source link does not disclose its new-tab behavior.');
+  assert((await sourceLink.innerText()).includes('Source on GitHub'), 'The source link lacks its visible GitHub label.');
+  result.footer = { sourceLabel: true, newTab: true };
+
+  await page.getByRole('link', { name: 'Demo', exact: true }).click();
+  const headerDemoHeading = page.getByRole('heading', { level: 1, name: 'Your packets', exact: true });
+  await headerDemoHeading.waitFor();
+  assert(await headerDemoHeading.evaluate((element) => element === document.activeElement), 'Header Demo did not focus the destination heading.');
+  assert(await page.locator('#route-announcement').innerText() === 'Opened Your packets', 'Header Demo route was not announced.');
+  await page.goBack();
+  const headerLandingHeading = page.getByRole('heading', { level: 1, name: 'Build a complete invoice evidence packet.' });
+  await headerLandingHeading.waitFor();
+  assert(await headerLandingHeading.evaluate((element) => element === document.activeElement), 'Header Demo Back did not focus the landing heading.');
+  assert(await page.locator('#route-announcement').innerText() === 'Opened Build a complete invoice evidence packet.', 'Header Demo Back was not announced.');
+  result.routes = { ...result.routes, headerDemoFocus: true, headerDemoBackFocus: true, headerDemoAnnouncement: true };
 
   await page.getByRole('link', { name: 'Try it with sample data' }).click();
   assert(new URL(page.url()).searchParams.get('demo') === '1', 'Demo action did not enter ?demo=1.');
@@ -110,7 +128,9 @@ try {
     apple: Boolean(document.querySelector('link[rel="apple-touch-icon"]')),
   }));
   assert(Object.values(metadata).every(Boolean), '404 metadata is incomplete.');
-  result.routes = { privacy: 'Privacy', terms: 'Terms', focus: true, backFocus: true, notFoundStatus: 404, metadata };
+  const notFoundSource = page.getByRole('link', { name: 'Source on GitHub (opens in a new tab)' });
+  assert(await notFoundSource.getAttribute('target') === '_blank', 'The 404 footer does not include the disclosed source link.');
+  result.routes = { ...result.routes, privacy: 'Privacy', terms: 'Terms', focus: true, backFocus: true, notFoundStatus: 404, metadata, notFoundFooter: true };
   await context.close();
 
   const accountContext = await browser.newContext({ acceptDownloads: true });

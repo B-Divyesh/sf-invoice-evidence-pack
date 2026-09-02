@@ -1,5 +1,6 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { createHash } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { BlobReader, TextWriter, ZipReader } from '@zip.js/zip.js';
@@ -200,6 +201,31 @@ test('@claim:duplicate-zip exports distinct files that share a source filename',
   expect(manifest.evidence?.slice(0, 2).map((item) => item.filename)).toEqual(['proof.pdf', 'proof.pdf']);
   expect(manifest.evidence?.slice(0, 2).map((item) => item.archiveFilename)).toEqual(['proof.pdf', 'proof-2.pdf']);
   await reader.close();
+  });
+});
+
+test('@claim:manifest-fingerprints includes each attached file SHA-256 in the exported ZIP manifest', async ({ browser }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  await withIsolatedPage(browser, async (page) => {
+    const contents = Buffer.from('manifest fingerprint fixture: INV-2026-042');
+    const expectedFingerprint = createHash('sha256').update(contents).digest('hex');
+    await page.goto('/?demo=1');
+    await page.locator('input[type="file"][data-item]').first().setInputFiles({
+      name: 'known-invoice.txt', mimeType: 'text/plain', buffer: contents,
+    });
+    await expect(page.getByText('known-invoice.txt')).toBeVisible();
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export ZIP packet' }).click();
+    const path = await (await downloadPromise).path();
+    const reader = new ZipReader(new BlobReader(new Blob([new Uint8Array(await readFile(path as string))])));
+    const manifestEntry = (await reader.getEntries()).find((entry) => entry.filename === 'manifest.json');
+    const manifest = JSON.parse(await manifestEntry?.getData?.(new TextWriter()) || '{}') as {
+      evidence?: Array<{ filename?: string; sha256?: string; status?: string }>;
+    };
+    expect(manifest.evidence).toEqual(expect.arrayContaining([
+      expect.objectContaining({ filename: 'known-invoice.txt', sha256: expectedFingerprint, status: 'present' }),
+    ]));
+    await reader.close();
   });
 });
 
@@ -720,6 +746,19 @@ test('moves focus and announces the destination for route navigation and browser
   await expect(page.locator('#route-announcement')).toHaveText('Opened Build a complete invoice evidence packet.');
 });
 
+test('moves focus and announces after header Demo navigation and browser back', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Demo', exact: true }).click();
+  await expect(page).toHaveURL(/\/demo\/$/);
+  const demoHeading = page.getByRole('heading', { level: 1, name: 'Your packets', exact: true });
+  await expect(demoHeading).toBeFocused();
+  await expect(page.locator('#route-announcement')).toHaveText('Opened Your packets');
+  await page.goBack();
+  const landingHeading = page.getByRole('heading', { level: 1, name: 'Build a complete invoice evidence packet.' });
+  await expect(landingHeading).toBeFocused();
+  await expect(page.locator('#route-announcement')).toHaveText('Opened Build a complete invoice evidence packet.');
+});
+
 test('keeps route focus and announcements in the isolated query demo', async ({ page }) => {
   await page.goto('/?demo=1');
   await expect(page.getByText('Demo — sample data, nothing is saved to your packets')).toBeVisible();
@@ -756,4 +795,15 @@ test('ships complete metadata for static routes and the designed 404 page', asyn
   expect(notFound).toContain('name="twitter:card"');
   expect(notFound).toContain('link rel="apple-touch-icon"');
   expect(notFound).toContain('<h1>Page not found</h1>');
+  expect(notFound).toContain('Source on GitHub (opens in a new tab)');
+  expect(notFound).toContain('target="_blank"');
+});
+
+test('uses an explicit external-source label in every footer', async ({ page, request }) => {
+  await page.goto('/');
+  const source = page.getByRole('link', { name: 'Source on GitHub (opens in a new tab)' });
+  await expect(source).toHaveAttribute('target', '_blank');
+  await expect(source).toContainText('Source on GitHub');
+  const notFound = await (await request.get('/404.html')).text();
+  expect(notFound).toContain('aria-label="Source on GitHub (opens in a new tab)"');
 });

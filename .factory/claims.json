@@ -21,6 +21,13 @@
     "sandbox": "hash a known Blob and compare the complete digest with an independent fixed value"
   },
   {
+    "id": "manifest-fingerprints",
+    "claim": "Each exported ZIP manifest includes the complete SHA-256 fingerprint for every attached evidence file.",
+    "where": "landing assurance strip, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:manifest-fingerprints",
+    "sandbox": "fresh Chromium context; open the isolated demo, attach known bytes, export a ZIP, read manifest.json, and compare the complete digest with an independent fixture digest"
+  },
+  {
     "id": "file-size-limit",
     "claim": "Each attached file may be up to and including 100 MiB.",
     "where": "evidence controls",

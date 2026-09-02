@@ -485,7 +485,7 @@ test('@claim:license-verification-minimum-data sends only the fixture license to
   expect(requestUrl).not.toContain('filename');
 });
 
-test('@claim:configurable-checklists starts packets from filing, client, and payment trail lists', async ({ page }, testInfo) => {
+test('@claim:configurable-checklists starts from and saves edits to filing, client, and payment trail checklists', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium');
   await page.goto('/');
   await page.getByRole('button', { name: 'Start your first packet' }).click();
@@ -497,6 +497,31 @@ test('@claim:configurable-checklists starts packets from filing, client, and pay
   await page.getByRole('button', { name: 'Create packet' }).click();
   await expect(page.getByRole('heading', { name: 'Payment trail packet' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Bank credit record' })).toBeVisible();
+
+  const engagement = page.locator('.evidence', { has: page.getByRole('heading', { name: 'Engagement record', exact: true }) });
+  await engagement.getByRole('button', { name: 'Edit item' }).click();
+  const editor = page.locator('#edit-item-form');
+  await editor.getByLabel('Item name Required').fill('Settlement confirmation');
+  await editor.getByLabel('What should this prove?').fill('A confirmed settlement for this payment trail.');
+  await editor.getByLabel('Required for this packet').uncheck();
+  await editor.getByRole('button', { name: 'Save checklist item' }).click();
+  await expect(page.getByText('Checklist item updated.')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Add checklist item' }).click();
+  const add = page.locator('#add-item-form');
+  await add.getByLabel('Item name Required').fill('Temporary supporting note');
+  await add.getByLabel('What should this prove?').fill('A note used only for this packet.');
+  await add.getByRole('button', { name: 'Add item' }).click();
+  const temporary = page.locator('.evidence', { has: page.getByRole('heading', { name: 'Temporary supporting note', exact: true }) });
+  page.once('dialog', (dialog) => dialog.accept());
+  await temporary.getByRole('button', { name: 'Remove item' }).click();
+  await expect(page.getByText('Checklist item removed.')).toBeVisible();
+
+  await page.reload();
+  const savedSettlement = page.locator('.evidence', { has: page.getByRole('heading', { name: 'Settlement confirmation', exact: true }) });
+  await expect(savedSettlement.getByText('A confirmed settlement for this payment trail.')).toBeVisible();
+  await expect(savedSettlement.getByRole('checkbox', { name: 'Required' })).not.toBeChecked();
+  await expect(page.getByRole('heading', { name: 'Temporary supporting note', exact: true })).toHaveCount(0);
 });
 
 test('@claim:no-document-backend sends no packet, analytics, or tracking request during a normal workflow', async ({ page }, testInfo) => {
@@ -515,6 +540,74 @@ test('@claim:no-document-backend sends no packet, analytics, or tracking request
   });
   await expect(page.getByText('Evidence stored locally and fingerprinted.')).toBeVisible();
   expect(externalRequests).toEqual([]);
+});
+
+test('@claim:data-deletion removes deleted packets and browser-cleared local data', async ({ browser }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  await withIsolatedPage(browser, async (page, context) => {
+    const databaseCounts = async () => page.evaluate(async () => {
+      const database = await new Promise<IDBDatabase>((resolve, reject) => {
+        const open = indexedDB.open('invoice-packet');
+        open.onsuccess = () => resolve(open.result);
+        open.onerror = () => reject(open.error);
+      });
+      const counts = await new Promise<{ packets: number; templates: number }>((resolve, reject) => {
+        const transaction = database.transaction(['packets', 'templates'], 'readonly');
+        const packets = transaction.objectStore('packets').count();
+        const templates = transaction.objectStore('templates').count();
+        transaction.oncomplete = () => resolve({ packets: packets.result, templates: templates.result });
+        transaction.onerror = () => reject(transaction.error);
+      });
+      database.close();
+      return counts;
+    });
+
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Start your first packet' }).click();
+    await page.getByLabel('Packet name Required').fill('Packet deleted from storage');
+    await page.getByRole('button', { name: 'Create packet' }).click();
+    await page.locator('input[type="file"][data-item]').first().setInputFiles({
+      name: 'delete-me.txt', mimeType: 'text/plain', buffer: Buffer.from('delete this attachment'),
+    });
+    page.once('dialog', (dialog) => dialog.accept());
+    await page.getByRole('button', { name: 'Delete Packet deleted from storage' }).click();
+    await expect(page.getByText('Packet deleted from this device.')).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole('heading', { level: 1, name: 'Build a complete invoice evidence packet.' })).toBeVisible();
+    expect(await databaseCounts()).toEqual({ packets: 0, templates: 0 });
+
+    await page.getByRole('button', { name: 'Start your first packet' }).click();
+    await page.getByLabel('Packet name Required').fill('Browser clear sentinel');
+    await page.getByRole('button', { name: 'Create packet' }).click();
+    await page.locator('input[type="file"][data-item]').first().setInputFiles({
+      name: 'site-data-proof.txt', mimeType: 'text/plain', buffer: Buffer.from('site data attachment'),
+    });
+    await page.evaluate(() => {
+      localStorage.setItem('sb_license:invoice-evidence-pack', 'clear-site-data-license');
+      localStorage.setItem('sb_license_verdict:invoice-evidence-pack', JSON.stringify({ valid: true, checkedAt: Date.now() }));
+    });
+    await page.reload();
+    page.once('dialog', (dialog) => dialog.accept('Clearable template'));
+    await page.getByRole('button', { name: 'Save as template' }).click();
+    await page.getByRole('button', { name: 'Switch color theme' }).click();
+    expect(await databaseCounts()).toEqual({ packets: 1, templates: 1 });
+    expect(await page.evaluate(() => ({
+      theme: localStorage.getItem('invoice-packet-theme'),
+      license: localStorage.getItem('sb_license:invoice-evidence-pack'),
+      verdict: localStorage.getItem('sb_license_verdict:invoice-evidence-pack'),
+    }))).toMatchObject({ theme: expect.any(String), license: 'clear-site-data-license', verdict: expect.any(String) });
+
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('Storage.clearDataForOrigin', { origin: ORIGIN, storageTypes: 'all' });
+    await page.reload();
+    await expect(page.getByRole('heading', { level: 1, name: 'Build a complete invoice evidence packet.' })).toBeVisible();
+    expect(await databaseCounts()).toEqual({ packets: 0, templates: 0 });
+    expect(await page.evaluate(() => ({
+      theme: localStorage.getItem('invoice-packet-theme'),
+      license: localStorage.getItem('sb_license:invoice-evidence-pack'),
+      verdict: localStorage.getItem('sb_license_verdict:invoice-evidence-pack'),
+    }))).toEqual({ theme: null, license: null, verdict: null });
+  });
 });
 
 test('@claim:no-account-required creates and exports without registration or sign-in', async ({ browser }, testInfo) => {
@@ -573,8 +666,69 @@ test('@claim:free-exports downloads free ZIP, PDF, and JSON backup files', async
     await expect((await pdf).suggestedFilename()).toBe('Free-export-packet-manifest.pdf');
 
     const backup = page.waitForEvent('download');
-    await page.getByRole('button', { name: 'Back up all data' }).click();
+    await page.getByRole('button', { name: 'Back up packets and templates' }).click();
     await expect((await backup).suggestedFilename()).toMatch(/^invoice-packet-backup-\d{4}-\d{2}-\d{2}\.json$/);
+  });
+});
+
+test('@claim:backup-packets-templates exports and restores only packets, attachments, and custom templates', async ({ browser }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  await withIsolatedPage(browser, async (page) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Start your first packet' }).click();
+    await page.getByLabel('Packet name Required').fill('Backup scope packet');
+    await page.getByRole('button', { name: 'Create packet' }).click();
+    await page.locator('input[type="file"][data-item]').first().setInputFiles({
+      name: 'backup-scope-proof.txt', mimeType: 'text/plain', buffer: Buffer.from('backup scope attachment'),
+    });
+    await page.evaluate(() => {
+      localStorage.setItem('invoice-packet-theme', 'dark');
+      localStorage.setItem('sb_license:invoice-evidence-pack', 'backup-scope-license');
+      localStorage.setItem('sb_license_verdict:invoice-evidence-pack', JSON.stringify({ valid: true, checkedAt: Date.now() }));
+    });
+    await page.reload();
+    page.once('dialog', (dialog) => dialog.accept('Backup scope template'));
+    await page.getByRole('button', { name: 'Save as template' }).click();
+    await expect(page.getByText('Custom template saved on this device.')).toBeVisible();
+
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Back up packets and templates' }).click();
+    const download = await downloadPromise;
+    const backup = JSON.parse(await readFile((await download.path()) as string, 'utf8')) as {
+      format: string;
+      version: number;
+      exportedAt: string;
+      packets: Array<{ title: string; items: Array<{ fileName?: string; fileBase64?: string }> }>;
+      templates: Array<{ name: string }>;
+      theme?: string;
+      license?: string;
+    };
+    expect(Object.keys(backup).sort()).toEqual(['exportedAt', 'format', 'packets', 'templates', 'version']);
+    expect(backup).toMatchObject({ format: 'invoice-packet-backup', version: 1 });
+    expect(backup.exportedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(backup.packets).toEqual(expect.arrayContaining([
+      expect.objectContaining({ title: 'Backup scope packet', items: expect.arrayContaining([
+        expect.objectContaining({ fileName: 'backup-scope-proof.txt', fileBase64: expect.any(String) }),
+      ]) }),
+    ]));
+    expect(backup.templates).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Backup scope template' })]));
+    expect(backup.theme).toBeUndefined();
+    expect(backup.license).toBeUndefined();
+    expect(JSON.stringify(backup)).not.toContain('backup-scope-license');
+
+    await page.getByRole('button', { name: 'Create packet' }).click();
+    await page.getByLabel('Packet name Required').fill('Discarded import target');
+    await page.locator('#new-packet-form').getByRole('button', { name: 'Create packet' }).click();
+    const chooserPromise = page.waitForEvent('filechooser');
+    await page.getByRole('button', { name: 'Import backup' }).click();
+    const chooser = await chooserPromise;
+    page.once('dialog', (dialog) => dialog.accept());
+    await chooser.setFiles({ name: 'backup-scope.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) });
+    await expect(page.getByRole('heading', { name: 'Backup scope packet' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Discarded import target' })).toHaveCount(0);
+    await expect(page.getByText('backup-scope-proof.txt')).toBeVisible();
+    await page.getByRole('button', { name: 'Create packet' }).click();
+    await expect(page.getByLabel('Starting checklist').getByRole('option', { name: 'Backup scope template · My template' })).toHaveCount(1);
   });
 });
 
@@ -626,20 +780,25 @@ test('uses task names throughout the sample workspace', async ({ page }) => {
   await expect(page.locator('main')).not.toContainText(/field cabinet|new specimen|supporting trace|evidence specimens|margin notes|bind the folio/i);
 });
 
-test('@claim:aes-zip @claim:custom-templates exercises paid tools inside the demo sandbox', async ({ browser }, testInfo) => {
+test('@claim:aes-zip @claim:password-not-stored @claim:custom-templates exercises paid tools inside the demo sandbox', async ({ browser }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium');
   await withIsolatedPage(browser, async (page) => {
+  const password = 'correct horse battery';
+  const requests: Array<{ url: string; body: string | null }> = [];
+  page.on('request', (request) => requests.push({ url: request.url(), body: request.postData() }));
   await page.goto('/demo/');
   const inputs = page.locator('input[type="file"][data-item]');
   await inputs.nth(0).setInputFiles({ name: 'proof.pdf', mimeType: 'application/pdf', buffer: Buffer.from('encrypted first bytes') });
   await inputs.nth(1).setInputFiles({ name: 'proof.pdf', mimeType: 'application/pdf', buffer: Buffer.from('encrypted second bytes') });
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Encrypted ZIP' }).click();
-  await page.getByLabel('Password At least 10 characters').fill('correct horse battery');
-  await page.getByLabel('Confirm password').fill('correct horse battery');
+  await page.getByLabel('Password At least 10 characters').fill(password);
+  await page.getByLabel('Confirm password').fill(password);
   await page.getByRole('button', { name: 'Export encrypted ZIP' }).click();
   const path = await (await downloadPromise).path();
-  const archive = new Blob([new Uint8Array(await readFile(path as string))]);
+  const archiveBytes = await readFile(path as string);
+  expect(archiveBytes.toString('utf8')).not.toContain(password);
+  const archive = new Blob([new Uint8Array(archiveBytes)]);
   const reader = new ZipReader(new BlobReader(archive));
   const entries = await reader.getEntries();
   expect(entries.map((entry) => entry.filename)).toEqual(expect.arrayContaining(['evidence/proof.pdf', 'evidence/proof-2.pdf']));
@@ -647,7 +806,7 @@ test('@claim:aes-zip @claim:custom-templates exercises paid tools inside the dem
   expect(manifest?.encrypted).toBe(true);
   expect(manifest?.zipCrypto).toBe(false);
   expect(manifest?.extraField?.get(0x9901)?.data[4]).toBe(3);
-  expect(await manifest?.getData?.(new TextWriter(), { password: 'correct horse battery' })).toContain('invoice-evidence-manifest/v1');
+  expect(await manifest?.getData?.(new TextWriter(), { password })).toContain('invoice-evidence-manifest/v1');
   await reader.close();
 
   const wrongReader = new ZipReader(new BlobReader(archive));
@@ -655,11 +814,58 @@ test('@claim:aes-zip @claim:custom-templates exercises paid tools inside the dem
   await expect(wrongManifest?.getData?.(new TextWriter(), { password: 'wrong password' })).rejects.toThrow();
   await wrongReader.close();
 
+  await expect(page.locator('#encrypt-form input[name="password"]')).toHaveValue('');
+  await expect(page.locator('#encrypt-form input[name="confirmPassword"]')).toHaveValue('');
+  const stored = await page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const open = indexedDB.open('demo:invoice-packet');
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    const data = await new Promise<{ packets: unknown[]; templates: unknown[] }>((resolve, reject) => {
+      const transaction = database.transaction(['packets', 'templates'], 'readonly');
+      const packetRequest = transaction.objectStore('packets').getAll();
+      const templateRequest = transaction.objectStore('templates').getAll();
+      transaction.oncomplete = () => resolve({ packets: packetRequest.result, templates: templateRequest.result });
+      transaction.onerror = () => reject(transaction.error);
+    });
+    database.close();
+    return JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage }, data });
+  });
+  expect(stored).not.toContain(password);
+  expect(requests.some((request) => request.url.includes(password) || request.body?.includes(password))).toBe(false);
+
   page.once('dialog', (dialog) => dialog.accept('Monthly client review'));
   await page.getByRole('button', { name: 'Save as template' }).click();
   await expect(page.getByText('Custom template saved on this device.')).toBeVisible();
   await page.getByRole('button', { name: 'Create packet' }).click();
   await expect(page.getByLabel('Starting checklist').getByRole('option', { name: 'Monthly client review · My template' })).toHaveCount(1);
+  await page.getByLabel('Starting checklist').selectOption({ label: 'Monthly client review · My template' });
+  await page.getByLabel('Packet name Required').fill('Template without files');
+  await page.locator('#new-packet-form').getByRole('button', { name: 'Create packet' }).click();
+  await expect(page.getByRole('heading', { name: 'Template without files' })).toBeVisible();
+  await expect(page.locator('.file-slip')).toHaveCount(0);
+  await expect(page.getByText('proof.pdf', { exact: true })).toHaveCount(0);
+  const savedData = await page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const open = indexedDB.open('demo:invoice-packet');
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    const data = await new Promise<{ packets: Array<{ title: string; items: Array<Record<string, unknown>> }>; templates: Array<{ name: string; seeds: Array<Record<string, unknown>> }> }>((resolve, reject) => {
+      const transaction = database.transaction(['packets', 'templates'], 'readonly');
+      const packetRequest = transaction.objectStore('packets').getAll();
+      const templateRequest = transaction.objectStore('templates').getAll();
+      transaction.oncomplete = () => resolve({ packets: packetRequest.result, templates: templateRequest.result });
+      transaction.onerror = () => reject(transaction.error);
+    });
+    database.close();
+    return data;
+  });
+  const template = savedData.templates.find((entry) => entry.name === 'Monthly client review');
+  const created = savedData.packets.find((entry) => entry.title === 'Template without files');
+  expect(template?.seeds.every((seed) => !('file' in seed) && !('fileName' in seed) && !('fileBase64' in seed))).toBe(true);
+  expect(created?.items.every((item) => !('file' in item) && !('fileName' in item) && !('fileBase64' in item))).toBe(true);
   });
 });
 
@@ -693,7 +899,7 @@ test('keeps evidence controls focused, touch-sized, and rejects whitespace-only 
 
   const addItem = page.getByRole('button', { name: 'Add checklist item' });
   await addItem.click();
-  const itemName = page.getByLabel('Item name Required');
+  const itemName = page.locator('#add-item-form').getByLabel('Item name Required');
   await itemName.fill('   ');
   await page.getByRole('button', { name: 'Add item' }).click();
   await expect(page.getByText('Enter an item name that contains at least one non-space character.')).toBeVisible();

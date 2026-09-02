@@ -1,6 +1,6 @@
 # Copy audit
 
-Audited 2 September 2026 after polish round 6. Counts use space-delimited words; hyphenated terms
+Audited 2 September 2026 after polish round 7. Counts use space-delimited words; hyphenated terms
 count as one word. Every sentence below is 22 words or fewer and contains none
 of the banned plain-language terms.
 
@@ -14,13 +14,13 @@ of the banned plain-language terms.
 | Your own packet starts with a checklist. | 7 | Pass |
 | One packet groups an invoice with its supporting evidence. | 9 | Pass |
 | Prepare one packet in three steps. | 6 | Pass |
-| Start with a filing, client review, or payment trail list. | 10 | Pass |
-| Change it to match the request. | 6 | Pass |
+| Start with a filing, client review, or payment trail checklist. | 10 | Pass — `configurable-checklists` |
+| Change it to match the request. | 6 | Pass — `configurable-checklists` |
 | Each file stays in this browser and receives a SHA-256 fingerprint. | 11 | Pass |
-| Download the evidence and manifest as ZIP, or make a PDF index. | 12 | Pass |
+| Download the evidence as a ZIP, or export a PDF manifest. | 10 | Pass — `free-exports` |
 | No document cloud and no account. | 6 | Pass — `no-document-backend`, `no-account-required` |
 | SHA-256 fingerprints travel with the manifest. | 6 | Pass — `manifest-fingerprints` |
-| Plain ZIP, PDF, and full JSON backup are free. | 9 | Pass |
+| Plain ZIP, PDF, and JSON backup are free. | 8 | Pass — `free-exports`, `json-backup` |
 | Build a checked evidence packet without uploading your files. | 9 | Pass |
 
 Headings, labels, and actions: **Private invoice evidence packets**, **Try it
@@ -36,7 +36,18 @@ The landing heading outline is h1 → h2 → three h3 headings → h2. The
 Workspace headings and labels: **Saved packets**, **New packet**, **Packet
 details**, **Collect evidence**, **Evidence files**, **Notes for the reviewer**,
 and **Export the packet**. Each uses the same packet, checklist, evidence,
-notes, and export terms as the landing page.
+notes, and export terms as the landing page. **Edit item** changes an item's
+name, explanation, and required state; `configurable-checklists` reloads and
+checks those saved edits.
+
+| Workspace or dialog copy | Words | Result |
+| --- | ---: | --- |
+| You can change every checklist item. | 6 | `configurable-checklists` |
+| Save its labels and requirements as a new template. | 10 | `custom-templates` |
+| Files are never copied. | 4 | `custom-templates` |
+| Share a password separately. | 4 | `password-not-stored` |
+| Invoice Packet does not store it and cannot recover it. | 10 | `password-not-stored` |
+| Back up packets and templates | 5 | `backup-packets-templates` |
 
 ## README
 
@@ -48,11 +59,11 @@ notes, and export terms as the landing page.
 | Store packets and files in this browser. | 7 | Pass — `local-only` |
 | It does not upload packet files or use analytics. | 9 | Pass — `no-document-backend` |
 | Create a SHA-256 fingerprint for each evidence file and include it in the manifest. | 14 | Pass — `manifest-fingerprints` |
-| Export plain ZIP packets, PDF manifests, and full JSON backups for free. | 12 | Pass — `free-exports`, `json-backup` |
+| Export plain ZIP packets, PDF manifests, and JSON backups of packets and templates for free. | 15 | Pass — `free-exports`, `backup-packets-templates` |
 | Keep distinct ZIP entries when evidence files share a filename. | 10 | Pass — `duplicate-zip` |
 | Preserve Devanagari and Japanese packet metadata in PDF text. | 9 | Pass — `unicode-pdf` |
 | Redact original filenames in exports when requested. | 7 | Pass — `filename-redaction` |
-| Import a complete JSON backup on another browser. | 8 | Pass — `backup-import` |
+| Import a JSON backup on another browser. | 7 | Pass — `backup-import` |
 | Install the app and reopen it offline after your first visit. | 11 | Pass |
 | Restore an existing license for encrypted ZIPs and reusable checklist templates. | 11 | Pass |
 | ZIP, PDF, and JSON backup exports work without a license. | 10 | Pass |
@@ -68,7 +79,7 @@ notes, and export terms as the landing page.
 | They check persistence, downloads, accessibility, legal routes, and offline reload. | 10 | Pass |
 | New-license checkout is disabled by default. | 6 | Pass |
 | An operator enables it only after testing the registered hosted checkout. | 11 | Pass |
-| The product uses the billing product slug. | 7 | Pass |
+| Checkout identifies this product as `invoice-evidence-pack`. | 6 | Pass |
 | It does not contain a payment-provider key or product ID. | 10 | Pass |
 | Deploy `dist/` as a static site. | 6 | Pass |
 | The build includes Privacy and Terms routes and a versioned offline cache. | 12 | Pass |
@@ -76,7 +87,8 @@ notes, and export terms as the landing page.
 | The factory owns DNS and infrastructure. | 6 | Pass |
 | After deployment, verify response policy and byte identity against the local build. | 12 | Pass |
 | Files stay on the device unless the user exports them. | 10 | Pass — `local-only` |
-| Browser data clearing can remove local storage, so use “Back up all data” before clearing it. | 16 | Pass |
+| Back up packets and templates before clearing browser storage. | 9 | Pass — `backup-packets-templates` |
+| Backups do not include your theme or license token. | 9 | Pass — `backup-packets-templates` |
 | License verification sends the license token, not packet files or filenames. | 11 | Pass |
 | See the in-product Privacy and Terms pages for details. | 9 | Pass |
 | The botanical field-guide visual system and artwork provenance are documented in [`.factory/design.md`](.factory/design.md). | 12 | Pass |
@@ -93,7 +105,7 @@ notes, and export terms as the landing page.
 | A supporting file | evidence |
 | The requested-item list | checklist |
 | The exported evidence index | manifest |
-| The complete portable JSON file | backup |
+| Portable JSON copy | backup |
 | Optional paid access | license |
 | Settlement evidence | payment trail |
 
@@ -112,9 +124,10 @@ Their explanatory text follows below each heading.
 | We do not operate document storage or analytics for this app. | 10 | Pass — `no-document-backend` |
 | Exported files go only to the location you choose. | 9 | Pass |
 | License verification sends the license token, not packet contents or filenames. | 11 | Pass — `license-verification-minimum-data` |
-| Use “Back up all data” before clearing browser storage or changing devices. | 12 | Pass |
-| Deleting a packet removes its local record and files. | 9 | Pass |
-| Clearing site data removes everything, including the saved license token. | 10 | Pass |
+| Use “Back up packets and templates” before clearing browser storage or changing devices. | 12 | Pass — `backup-packets-templates` |
+| Backups do not include your theme or license token. | 9 | Pass — `backup-packets-templates` |
+| Deleting a packet removes its local record and files. | 9 | Pass — `data-deletion` |
+| Clearing site data removes everything, including the saved license token. | 10 | Pass — `data-deletion` |
 | New license purchases are not available in this build. | 9 | Pass — `checkout-operator-gate` |
 | You can restore an existing license by pasting its token. | 10 | Pass — `license-restore` |
 

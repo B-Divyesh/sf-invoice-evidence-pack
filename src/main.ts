@@ -59,7 +59,7 @@ function legalPage(kind: 'privacy' | 'terms'): string {
     <p class="lede">Invoice Packet stores its data in this browser. Your invoices, evidence files, notes, and packet records stay here until you delete or export them.</p>
     <h2>What stays on your device</h2><p>Packet details, attachments, file hashes, custom templates, settings, and license tokens are stored locally. We do not operate document storage or analytics for this app.</p>
     <h2>When data leaves</h2><p>Exported files go only to the location you choose. License verification sends the license token, not packet contents or filenames.</p>
-    <h2>Your controls</h2><p>Use “Back up all data” before clearing browser storage or changing devices. Deleting a packet removes its local record and files. Clearing site data removes everything, including the saved license token.</p>
+    <h2>Your controls</h2><p>Use “Back up packets and templates” before clearing browser storage or changing devices. Backups do not include your theme or license token. Deleting a packet removes its local record and files. Clearing site data removes everything, including the saved license token.</p>
     <h2>License purchases</h2><p>New license purchases are not available in this build. You can restore an existing license by pasting its token.</p>`;
   const terms = `<p class="eyebrow">Effective 28 August 2026</p><h1 id="route-heading" tabindex="-1">Terms</h1>
     <p class="lede">Invoice Packet helps organize evidence. It does not provide legal, tax, accounting, foreign-exchange, or filing advice, and it does not submit anything to an authority.</p>
@@ -98,9 +98,18 @@ function dialogs(): string {
     <label class="check-label"><input name="required" type="checkbox" checked> Required for this packet</label>
     <div class="dialog-actions"><button class="button secondary" type="button" data-close-dialog>Cancel</button><button class="button primary" type="submit">Add item</button></div>
   </form></dialog>
+  <dialog id="edit-item-dialog" aria-labelledby="edit-item-title"><form method="dialog" id="edit-item-form">
+    <div class="dialog-head"><div><p class="eyebrow">Checklist</p><h2 id="edit-item-title">Edit checklist item</h2></div><button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button></div>
+    <input name="itemId" type="hidden">
+    <label>Item name <span>Required</span><input name="label" required maxlength="100" aria-describedby="edit-item-name-error"></label>
+    <p class="form-error" id="edit-item-name-error" aria-live="polite"></p>
+    <label>What should this prove?<textarea name="description" rows="3" maxlength="240"></textarea></label>
+    <label class="check-label"><input name="required" type="checkbox"> Required for this packet</label>
+    <div class="dialog-actions"><button class="button secondary" type="button" data-close-dialog>Cancel</button><button class="button primary" type="submit">Save checklist item</button></div>
+  </form></dialog>
   <dialog id="encrypt-dialog" aria-labelledby="encrypt-title"><form method="dialog" id="encrypt-form">
     <div class="dialog-head"><div><p class="eyebrow">AES-256 protection</p><h2 id="encrypt-title">Set an export password</h2></div><button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button></div>
-    <p>Use a password you can share separately. It cannot be recovered by Invoice Packet.</p>
+    <p>Share a password separately. Invoice Packet does not store it and cannot recover it.</p>
     <label>Password <span>At least 10 characters</span><input name="password" type="password" minlength="10" required autocomplete="new-password"></label>
     <label>Confirm password<input name="confirmPassword" type="password" minlength="10" required autocomplete="new-password"></label>
     <p class="form-error" id="password-error" aria-live="polite"></p>
@@ -131,7 +140,7 @@ function emptyState(): string {
     </div>
     <figure class="hero-art"><picture><source srcset="/assets/hero-field-guide-768.webp 768w, /assets/hero-field-guide-1536.webp 1536w" type="image/webp"><img src="/assets/hero-field-guide-768.jpg" width="768" height="512" alt="An open botanical field folio with a blank document, evidence tags, fern specimens, and a magnifying glass" fetchpriority="high" decoding="async"></picture><figcaption>One packet groups an invoice with its supporting evidence.</figcaption></figure>
   </section>
-  <section class="method" aria-labelledby="method-title"><div><p class="eyebrow">How it works</p><h2 id="method-title">Prepare one packet in three steps.</h2></div><ol><li><span>01</span><div><h3>Choose a checklist</h3><p>Start with a filing, client review, or payment trail list. Change it to match the request.</p></div></li><li><span>02</span><div><h3>Add the evidence</h3><p>Each file stays in this browser and receives a SHA-256 fingerprint.</p></div></li><li><span>03</span><div><h3>Export the packet</h3><p>Download the evidence and manifest as ZIP, or make a PDF index.</p></div></li></ol></section>`;
+  <section class="method" aria-labelledby="method-title"><div><p class="eyebrow">How it works</p><h2 id="method-title">Prepare one packet in three steps.</h2></div><ol><li><span>01</span><div><h3>Choose a checklist</h3><p>Start with a filing, client review, or payment trail checklist. Change it to match the request.</p></div></li><li><span>02</span><div><h3>Add the evidence</h3><p>Each file stays in this browser and receives a SHA-256 fingerprint.</p></div></li><li><span>03</span><div><h3>Export the packet</h3><p>Download the evidence as a ZIP, or export a PDF manifest.</p></div></li></ol></section>`;
 }
 
 function packetList(): string {
@@ -140,7 +149,7 @@ function packetList(): string {
       const progress = progressFor(packet);
       return `<button class="packet-tab ${packet.id === selectedId ? 'active' : ''}" data-action="select" data-id="${escapeHtml(packet.id)}" aria-current="${packet.id === selectedId ? 'true' : 'false'}"><span><strong>${escapeHtml(packet.title)}</strong><small>${escapeHtml(packet.invoiceNumber || 'No invoice number')} · ${progress.percent}% complete</small></span><span class="specimen-no">${String(packets.indexOf(packet) + 1).padStart(2, '0')}</span></button>`;
     }).join('')}</div>
-    <div class="data-tools"><p>Your packets are stored only in this browser.</p><button class="text-button" data-action="backup">${icon('download')} Back up all data</button><button class="text-button" data-action="import">${icon('file')} Import backup</button></div>
+    <div class="data-tools"><p>Your packets are stored only in this browser.</p><button class="text-button" data-action="backup">${icon('download')} Back up packets and templates</button><button class="text-button" data-action="import">${icon('file')} Import backup</button></div>
   </aside>`;
 }
 
@@ -149,7 +158,7 @@ function evidenceRow(item: EvidenceItem, index: number): string {
     <div class="evidence-number">${String(index + 1).padStart(2, '0')}</div>
     <div class="evidence-body"><div class="evidence-heading"><div><h3>${escapeHtml(item.label)}</h3><p>${escapeHtml(item.description || 'No description added.')}</p></div><span class="status-mark">${item.file ? '✓ Collected' : item.required ? '! Required' : 'Optional'}</span></div>
     ${item.file ? `<div class="file-slip">${icon('file')}<div><strong>${escapeHtml(item.fileName || 'Evidence file')}</strong><span>${displayBytes(item.fileSize)} · SHA-256 <code title="${item.sha256}">${shortHash(item.sha256)}</code></span></div><label class="mini-button">Replace<input type="file" data-item="${escapeHtml(item.id)}"></label><button class="mini-button danger" data-action="remove-file" data-item="${escapeHtml(item.id)}">Remove</button></div>` : `<div class="collect-slot"><label class="button secondary">${icon('plus')} Add evidence<input type="file" data-item="${escapeHtml(item.id)}"></label><span>Any file · 100 MiB maximum</span></div>`}
-    <div class="item-controls"><label class="check-label compact"><input type="checkbox" data-item-required="${escapeHtml(item.id)}" ${item.required ? 'checked' : ''}> Required</label><button class="text-button danger" data-action="remove-item" data-item="${escapeHtml(item.id)}">${icon('trash')} Remove item</button></div></div>
+    <div class="item-controls"><label class="check-label compact"><input type="checkbox" data-item-required="${escapeHtml(item.id)}" ${item.required ? 'checked' : ''}> Required</label><button class="text-button" data-action="edit-item" data-item="${escapeHtml(item.id)}">Edit item</button><button class="text-button danger" data-action="remove-item" data-item="${escapeHtml(item.id)}">${icon('trash')} Remove item</button></div></div>
   </li>`;
 }
 
@@ -229,7 +238,7 @@ function render(routeChanged = false): void {
   app.innerHTML = `${header()}${demoBanner()}<main id="main">${hiddenHeading}
     ${updateWorker ? '<div class="update-note" role="status">A new app version is ready. <button data-action="update-sw">Update now</button></div>' : ''}
     ${loading ? '<div class="loading-state" role="status"><span class="pressed-leaf"></span><p>Opening your saved packets…</p></div>' : storageError ? `<section class="error-state"><p class="eyebrow">Storage unavailable</p><h2>Your saved packets could not open.</h2><p>${escapeHtml(storageError)}</p><button class="button secondary" data-action="reload">Reload the app</button></section>` : packets.length ? workspace() : emptyState()}
-    <section class="assurance" aria-labelledby="assurance-title"><h2 class="eyebrow" id="assurance-title">Storage and export privacy</h2><div><strong>Stored locally</strong><span>No document cloud and no account.</span></div><div><strong>File fingerprints in each manifest</strong><span>SHA-256 fingerprints travel with the manifest.</span></div><div><strong>Download ZIP, PDF, or JSON backup</strong><span>Plain ZIP, PDF, and full JSON backup are free.</span></div>${demoMode ? '<span class="demo-paid-note">Paid tools are included in this demo.</span>' : `<button class="text-button" data-action="license">${licensed ? 'Paid tools active' : checkoutEnabled ? 'View encrypted-export options' : 'Restore an existing license'}</button>`}</section>
+    <section class="assurance" aria-labelledby="assurance-title"><h2 class="eyebrow" id="assurance-title">Storage and export privacy</h2><div><strong>Stored locally</strong><span>No document cloud and no account.</span></div><div><strong>File fingerprints in each manifest</strong><span>SHA-256 fingerprints travel with the manifest.</span></div><div><strong>Download ZIP, PDF, or JSON backup</strong><span>Plain ZIP, PDF, and JSON backup are free.</span></div>${demoMode ? '<span class="demo-paid-note">Paid tools are included in this demo.</span>' : `<button class="text-button" data-action="license">${licensed ? 'Paid tools active' : checkoutEnabled ? 'View encrypted-export options' : 'Restore an existing license'}</button>`}</section>
   </main>${footer()}${dialogs()}<div class="toast" role="status" aria-live="polite" aria-atomic="true">${escapeHtml(notice)}</div>`;
   bindGlobalEvents();
   if (routeChanged) focusRouteHeading();
@@ -282,6 +291,17 @@ async function handleAction(button: HTMLElement): Promise<void> {
   }
   if (action === 'select') { selectedId = button.dataset.id || ''; render(); }
   if (action === 'add-item') openDialog('add-item-dialog');
+  if (action === 'edit-item') {
+    const item = currentPacket()?.items.find((row) => row.id === button.dataset.item);
+    const form = document.querySelector<HTMLFormElement>('#edit-item-form');
+    if (item && form) {
+      (form.elements.namedItem('itemId') as HTMLInputElement).value = item.id;
+      (form.elements.namedItem('label') as HTMLInputElement).value = item.label;
+      (form.elements.namedItem('description') as HTMLTextAreaElement).value = item.description;
+      (form.elements.namedItem('required') as HTMLInputElement).checked = item.required;
+      openDialog('edit-item-dialog');
+    }
+  }
   if (action === 'license') openDialog('license-dialog');
   if (action === 'reload') location.reload();
   if (action === 'update-sw' && updateWorker) { applyingUpdate = true; updateWorker.postMessage({ type: 'SKIP_WAITING' }); }
@@ -342,11 +362,11 @@ async function handleAction(button: HTMLElement): Promise<void> {
     }
   }
   if (action === 'backup') {
-    announce('Preparing your complete local backup…');
+    announce('Preparing your packets and templates backup…');
     try {
       const data = await createBackup(packets, customTemplates);
       download(new Blob([JSON.stringify(data)], { type: 'application/json' }), `invoice-packet-backup-${new Date().toISOString().slice(0, 10)}.json`);
-      announce('Backup exported. Keep it somewhere safe.');
+      announce('Packets and templates backup exported. Keep it somewhere safe.');
     } catch { announce('The backup could not be prepared. Check available memory and try again.'); }
   }
 }
@@ -413,10 +433,11 @@ function validateTrimmedRequired(input: HTMLInputElement, error: HTMLElement | n
 }
 
 function bindForms(): void {
-  document.querySelectorAll<HTMLInputElement>('#new-packet-form input[name="title"], #add-item-form input[name="label"]').forEach((input) => input.addEventListener('input', () => {
+  document.querySelectorAll<HTMLInputElement>('#new-packet-form input[name="title"], #add-item-form input[name="label"], #edit-item-form input[name="label"]').forEach((input) => input.addEventListener('input', () => {
     input.setCustomValidity('');
     input.removeAttribute('aria-invalid');
-    const error = input.closest('form')?.querySelector<HTMLElement>(input.name === 'title' ? '#packet-name-error' : '#item-name-error');
+    const errorId = input.name === 'title' ? '#packet-name-error' : input.closest('form')?.id === 'edit-item-form' ? '#edit-item-name-error' : '#item-name-error';
+    const error = input.closest('form')?.querySelector<HTMLElement>(errorId);
     if (error) error.textContent = '';
   }));
   document.querySelector<HTMLFormElement>('#new-packet-form')?.addEventListener('submit', async (event) => {
@@ -439,6 +460,19 @@ function bindForms(): void {
     const packet = currentPacket(); if (!packet) return; const data = new FormData(form);
     packet.items.push({ id: crypto.randomUUID(), label: String(data.get('label')).trim(), description: String(data.get('description')).trim(), required: data.get('required') === 'on' });
     await persist(packet, `Added checklist item: ${String(data.get('label')).trim()}`); (form.closest('dialog') as HTMLDialogElement).close(); form.reset(); render(); announce('Checklist item added.');
+  });
+  document.querySelector<HTMLFormElement>('#edit-item-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault(); const form = event.currentTarget as HTMLFormElement;
+    const label = form.elements.namedItem('label') as HTMLInputElement;
+    const error = form.querySelector<HTMLElement>('#edit-item-name-error');
+    if (!validateTrimmedRequired(label, error, 'Enter an item name that contains at least one non-space character.') || !form.reportValidity()) return;
+    const packet = currentPacket(); if (!packet) return; const data = new FormData(form);
+    const item = packet.items.find((row) => row.id === data.get('itemId'));
+    if (!item) return;
+    item.label = String(data.get('label')).trim();
+    item.description = String(data.get('description')).trim();
+    item.required = data.get('required') === 'on';
+    await persist(packet, `Edited checklist item: ${item.label}`); (form.closest('dialog') as HTMLDialogElement).close(); form.reset(); render(); announce('Checklist item updated.');
   });
   document.querySelector<HTMLFormElement>('#encrypt-form')?.addEventListener('submit', async (event) => {
     event.preventDefault(); const form = event.currentTarget as HTMLFormElement; if (!form.reportValidity()) return; const data = new FormData(form); const password = String(data.get('password')); const confirmPassword = String(data.get('confirmPassword')); const error = form.querySelector<HTMLElement>('#password-error');

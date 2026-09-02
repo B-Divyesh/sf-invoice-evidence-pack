@@ -64,10 +64,17 @@
   },
   {
     "id": "json-backup",
-    "claim": "A full JSON backup retains packet attachments.",
+    "claim": "A JSON backup retains packet attachments.",
     "where": "landing facts, editor, README",
     "test": "npm test -- --testNamePattern @claim:json-backup",
     "sandbox": "create a backup containing a Blob, parse it into a fresh data structure, and compare its bytes and metadata"
+  },
+  {
+    "id": "backup-packets-templates",
+    "claim": "A JSON backup restores packets, attachments, and custom templates, but not a theme or license token.",
+    "where": "backup action, privacy page, README",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:backup-packets-templates",
+    "sandbox": "fresh Chromium context; create a packet with an attachment and custom template, download the visible backup, assert its exact scope, import it over another packet, and verify the restored scope"
   },
   {
     "id": "backup-import",
@@ -91,11 +98,18 @@
     "sandbox": "isolated demo; export with a test password; inspect the AES extra field strength; decrypt with the correct password and reject a wrong one"
   },
   {
+    "id": "password-not-stored",
+    "claim": "An encrypted-export password is not stored by Invoice Packet.",
+    "where": "encrypted-export dialog",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:password-not-stored",
+    "sandbox": "fresh demo context; export an encrypted ZIP; assert the password is absent from browser storage, IndexedDB, the archive bytes, form fields, and outgoing requests"
+  },
+  {
     "id": "custom-templates",
-    "claim": "An existing license can save a checklist as a reusable custom template.",
+    "claim": "An existing license can save a reusable custom template without copying attached files.",
     "where": "editor, license dialog, terms, README",
     "test": "npm run test:e2e -- --project=chromium --grep @claim:custom-templates",
-    "sandbox": "isolated demo; save the current checklist and assert it appears as an option for a new packet"
+    "sandbox": "isolated demo; save a checklist with attached files, create a packet from it, and assert the new packet and stored template exclude file bytes and filename metadata"
   },
   {
     "id": "license-restore",
@@ -127,10 +141,10 @@
   },
   {
     "id": "configurable-checklists",
-    "claim": "Start a packet from cross-border filing, client review, or payment trail checklists.",
+    "claim": "Start from and edit cross-border filing, client review, or payment trail checklists.",
     "where": "new-packet dialog, README",
     "test": "npm run test:e2e -- --project=chromium --grep @claim:configurable-checklists",
-    "sandbox": "fresh Chromium context; assert the filing and client options, select Payment trail, create a packet, and observe its checklist"
+    "sandbox": "fresh Chromium context; select Payment trail, rename an item, change its required state, add and remove an item, reload, and observe the saved checklist"
   },
   {
     "id": "no-document-backend",
@@ -138,6 +152,13 @@
     "where": "assurance strip, privacy page, README",
     "test": "npm run test:e2e -- --project=chromium --grep @claim:no-document-backend",
     "sandbox": "fresh Chromium context; record every request while creating a packet and attaching evidence, then assert no third-party request occurs"
+  },
+  {
+    "id": "data-deletion",
+    "claim": "Deleting a packet removes its local record and files. Clearing site data removes locally stored packets, templates, settings, and license tokens.",
+    "where": "privacy page",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:data-deletion",
+    "sandbox": "fresh Chromium context; delete an attached packet and inspect IndexedDB after reload; then use browser site-data clearing and assert packets, templates, theme, and license keys are gone"
   },
   {
     "id": "no-account-required",

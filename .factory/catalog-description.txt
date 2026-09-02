@@ -1,1 +1,1 @@
-Build complete invoice evidence packets locally, flag missing files, and export ZIP, PDF, or JSON backups.
+Build invoice packets, flag missing evidence, and export ZIP, PDF, or JSON backups of packets and templates.

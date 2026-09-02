@@ -11,11 +11,11 @@ Try the isolated sample workspace: <https://invoice-evidence-pack.sociobot.in/?d
 - Start from a cross-border filing, client review, or payment trail checklist.
 - Store packets and files in this browser. It does not upload packet files or use analytics.
 - Create a SHA-256 fingerprint for each evidence file and include it in the manifest.
-- Export plain ZIP packets, PDF manifests, and full JSON backups for free.
+- Export plain ZIP packets, PDF manifests, and JSON backups of packets and templates for free.
 - Keep distinct ZIP entries when evidence files share a filename.
 - Preserve Devanagari and Japanese packet metadata in PDF text.
 - Redact original filenames in exports when requested.
-- Import a complete JSON backup on another browser.
+- Import a JSON backup on another browser.
 - Install the app and reopen it offline after your first visit.
 - Restore an existing license for encrypted ZIPs and reusable checklist templates.
 
@@ -52,7 +52,7 @@ New-license checkout is disabled by default. An operator enables it only after t
 VITE_CHECKOUT_ENABLED=true npm run build
 ```
 
-The product uses the billing product slug. It does not contain a payment-provider key or product ID.
+Checkout identifies this product as `invoice-evidence-pack`. It does not contain a payment-provider key or product ID.
 
 ## Deployment
 
@@ -66,7 +66,7 @@ npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
 
 ## Privacy and data recovery
 
-Files stay on the device unless the user exports them. Browser data clearing can remove local storage, so use “Back up all data” before clearing it. License verification sends the license token, not packet files or filenames. See the in-product Privacy and Terms pages for details.
+Files stay on the device unless the user exports them. Back up packets and templates before clearing browser storage. Backups do not include your theme or license token. License verification sends the license token, not packet files or filenames. See the in-product Privacy and Terms pages for details.
 
 ## Design and provenance
 

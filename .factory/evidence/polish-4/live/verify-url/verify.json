@@ -1,0 +1,14 @@
+{
+  "url": "https://invoice-evidence-pack.sociobot.in",
+  "loadMs": 1760,
+  "errors": [],
+  "a11y": {
+    "title": "Invoice Packet — build invoice evidence packets",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 1330
+  }
+}

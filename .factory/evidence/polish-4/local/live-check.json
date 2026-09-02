@@ -1,0 +1,63 @@
+{
+  "origin": "http://127.0.0.1:4280",
+  "firstScreen": {
+    "title": "Invoice Packet — build invoice evidence packets",
+    "h1": [
+      "Build a complete invoice evidence packet."
+    ],
+    "main": 1,
+    "demoHref": "/?demo=1",
+    "primaryVisible": true
+  },
+  "demo": {
+    "url": "http://127.0.0.1:4280/?demo=1",
+    "banner": true,
+    "reset": true,
+    "databases": [
+      "demo:invoice-packet",
+      "invoice-packet"
+    ],
+    "taskLabels": true,
+    "focus": true,
+    "backFocus": true,
+    "routeAnnouncement": true
+  },
+  "routes": {
+    "headerDemoFocus": true,
+    "headerDemoBackFocus": true,
+    "headerDemoAnnouncement": true,
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "focus": true,
+    "backFocus": true,
+    "notFoundStatus": 404,
+    "metadata": {
+      "description": true,
+      "canonical": true,
+      "og": true,
+      "twitter": true,
+      "apple": true
+    },
+    "notFoundFooter": true
+  },
+  "footer": {
+    "sourceLabel": true,
+    "newTab": true
+  },
+  "noAccount": {
+    "exported": "Live-no-account-packet.zip",
+    "registrationStep": false
+  },
+  "mobile": {
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "seriousCritical": []
+  },
+  "offline": {
+    "reloaded": true,
+    "status": "Offline"
+  },
+  "consoleErrors": [],
+  "failedRequests": [],
+  "externalRequests": []
+}

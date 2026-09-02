@@ -1,35 +1,48 @@
-# Invoice Packet review-4 handoff — 2026-09-02
+# Invoice Packet polish-4 handoff — 2026-09-02
 
 ## Outcome
 
-**FAIL.** This was a read-only adversarial review. Product source was not
-changed. The detailed report is in [review-4.md](review-4.md).
+Released repair `24aada5411a163efd945e0f8c8f45efc0e5ab1cd` and deployed it as
+Azure Static Web Apps deployment `a8e566c9-2dff-4d5c-ae76-1265c1aa40ac`.
+The live product is <https://invoice-evidence-pack.sociobot.in>.
 
-## Prior release verification
+This repair closes every finding from review 1 through review 4. It adds the
+missing header Demo/history focus contract, a real ZIP-manifest fingerprint
+claim test, an explicit disclosed GitHub source link, and matching 404 footer
+links. The one-click `?demo=1` workspace remains isolated in
+`demo:invoice-packet`, with a persistent banner, Reset demo, and Start for
+real controls.
 
-- Fresh install: `npm ci` passed with 0 reported vulnerabilities.
-- Every one of the 22 exact `.factory/claims.json` commands passed; each
-  declared claim has one tagged test.
-- `npm test` passed 11/11; `npm run check` and `npm run build` passed;
-  `npm run test:e2e` passed 43 tests with 17 expected project skips.
-- Production identity and response policy passed:
-  `npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in`.
-- Live first-read/demo, create/export, invalid-input recovery, desktop/mobile,
-  keyboard, reduced motion, Axe, privacy logs, headers/caching, PWA update,
-  and offline first-use ZIP/PDF exports passed.
-- Existing-license verification allowed 30 synthetic invalid-token requests;
-  request 31 returned 429 with `Retry-After: 3`.
+## Verification
 
-See [verification-13.md](verification-13.md) for exact evidence and hashes.
+- Fresh clone `/tmp/invoice-evidence-pack-clean-OQOP0q`: `npm ci`, all 23
+  exact commands in `.factory/claims.json`, `npm test`, `npm run check`, and
+  `npm run build` passed.
+- Working tree: `npm test` passed 11/11; `npm run check` and `npm run build`
+  passed; `npm run test:e2e` passed 66 tests; `npm run test:e2e:repeat`
+  passed 132 tests.
+- Claim inventory check confirmed 23 claim IDs, exactly one `@claim:<id>` test
+  per ID, and no undeclared tags.
+- Local production-shaped checks passed:
+  `npm run verify:deployment -- http://127.0.0.1:4174`, the Static Web Apps
+  emulator live check, and `verify-url.sh`. The local verifier exercised
+  404s, header Demo → Back focus, one-click demo isolation, request privacy,
+  mobile Axe, and offline reload.
+- Live checks passed:
+  `npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in`,
+  `npm run verify:live -- https://invoice-evidence-pack.sociobot.in
+  .factory/evidence/polish-4/live`, and
+  `/opt/fleet/lib/verify-url.sh https://invoice-evidence-pack.sociobot.in
+  .factory/evidence/polish-4/live/verify-url`.
+- Live URL audit: 1.76s load, no console errors, `lang="en"`, one h1, main
+  landmark, no missing image alt text, and no unlabeled buttons.
+- Live mobile Lighthouse: Performance 100, Accessibility 100, Best Practices
+  100, SEO 100; LCP 1.1s and CLS 0. Evidence is in
+  `.factory/evidence/polish-4/live/lighthouse-mobile.json`.
+- Initial JavaScript remains 16.66 kB gzip and CSS 5.51 kB gzip. Lazy export
+  dependencies are cached after the first visit for offline ZIP/PDF use.
 
-## Review-4 verification
-
-- Fresh live checks at 390px and desktop confirmed the job, audience, and sample-data action on the first screen.
-- The one-click demo opened populated sample data in `demo:invoice-packet`, kept its banner after Reset, and made same-origin requests only.
-- All 22 exact claim commands passed from a clean clone. `npm test` (11/11), `npm run check`, `npm run build`, the full 60-test browser suite, `verify-url.sh`, and the live deployment verifier passed.
-- Live routes, 404, metadata, request behavior, link status, and prior-finding repairs were checked.
-
-## Run / verify
+## Run and deploy
 
 ```sh
 npm ci
@@ -40,10 +53,9 @@ npm run test:e2e
 npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
 ```
 
-Deploy only `dist/` to the assigned static product.
+Deploy `dist/` with `/opt/fleet/lib/deploy-static.sh invoice-evidence-pack dist`.
 
-## Known gaps / next steps
+## Evidence and next steps
 
-1. Header Demo navigation and browser Back leave focus on `body` and do not update the route announcement; this is blocking.
-2. The public promise that fingerprints appear in manifests needs its own declared, observable export test.
-3. Disclose the external/new-tab Source link and render the same footer links on the designed 404.
+See [.factory/polish-4.md](polish-4.md) for the complete finding map and
+evidence paths. There are no known gaps or deferred findings.

@@ -1,8 +1,11 @@
 # Independent verification 15 — PASS
 
-**Candidate:** `bbe4a46b9257af27707eaf3d8dc08fe97b67cf15`  
-**Live URL:** <https://invoice-evidence-pack.sociobot.in>  
-**Verified:** 2026-09-02 UTC  
+**Candidate:** `bbe4a46b9257af27707eaf3d8dc08fe97b67cf15`
+
+**Live URL:** <https://invoice-evidence-pack.sociobot.in>
+
+**Verified:** 2026-09-02 UTC
+
 **Work order:** `invoice-evidence-pack-verify-15`
 
 ## Verdict

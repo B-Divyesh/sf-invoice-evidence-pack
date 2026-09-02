@@ -1,59 +1,44 @@
-# Invoice Packet polish-5 handoff — 2026-09-02
+# Invoice Packet independent verification 15 handoff — 2026-09-02
 
 ## Outcome
 
-**PASS.** Every finding from reviews 1–5 is fixed and rechecked on the live
-site. The product remains a local-first static PWA with its botanical
-field-guide identity intact.
+**PASS.** Candidate `bbe4a46b9257af27707eaf3d8dc08fe97b67cf15` is accepted
+at <https://invoice-evidence-pack.sociobot.in>. The live deployment is
+byte-identical to the candidate build for the checked shell, PWA, legal, demo,
+and hashed entry assets. No product defect was confirmed.
 
-## Changes
+The full evidence and exact results are in
+[`.factory/verification-15.md`](verification-15.md).
 
-- The first-screen **Try it with sample data** action now opens the isolated
-  `?demo=1` workspace, focuses **Your packets**, and announces the route.
-- Added fixture-backed `license-revocation` and `offline-license-verdict`
-  claims. Revoked verdicts lock paid tools; saved valid licenses work offline
-  and recheck after reconnection.
-- Removed the unprovable merchant/refund statement while checkout remains
-  disabled.
-- Made IndexedDB writes await transaction completion, preventing an immediate
-  reload from racing a newly saved packet.
-- Updated the 97-character verb-first catalog description and expanded the
-  copy audit with every README sentence and the retained Terms statements.
+## Verification summary
 
-## Verification
-
-- Clean clone: `/tmp/invoice-polish5-clean-3TSRiv` at repair commit `cdf83ed`.
-- All 25 exact commands in `.factory/claims.json` passed after `npm ci`.
-- `npm test`: 11/11 passed; `npm run check` and `npm run build` passed.
-- `npm run test:e2e`: 52 passed, 20 intended project skips.
-- `npm run test:e2e:repeat`: 104 passed, 40 intended project skips in a fresh
-  browser process.
-- Browser coverage includes desktop/mobile, both themes, keyboard focus,
-  dialogs, downloads, request privacy, offline reload, and Axe serious/critical
-  checks.
-- Initial entry JavaScript is 49.21 kB (16.69 kB gzip); CSS is 21.30 kB
-  (5.51 kB gzip). Export libraries remain lazy-loaded.
-- Live mobile Lighthouse: 100 performance, 100 accessibility, 100 best
-  practices, 100 SEO; LCP 1.1 s, TBT 0 ms, CLS 0.
-- The live verifier found no console errors, failed requests, third-party demo
-  requests, mobile overflow, or serious/critical Axe findings. It also passed
-  demo reset/isolation, route focus, license fixtures, offline reload, metadata,
-  the 404, and no-account export.
-- The deployment verifier confirmed byte identity and response policy for the
-  tested build.
-
-Evidence is under [`.factory/evidence/polish-5/`](evidence/polish-5/). The
-finding-by-finding record is [`.factory/polish-5.md`](polish-5.md).
-
-## Release
-
-- Code commit: `cdf83ed`
-- Static Web Apps deployment: `264aead9-56ff-427b-9cab-33c6d3d48a70`
-- Live URL: <https://invoice-evidence-pack.sociobot.in>
-- Cold root, `?demo=1`, `/demo/`, `/privacy/`, `/terms/`, manifest, robots,
-  sitemap, and source links returned 200. An unknown route returned the
-  designed 404.
+- All 25 commands in `.factory/claims.json` passed individually from the clean
+  checkout.
+- `npm ci`, `npm test` (11/11), `npm run check`, and `npm run build` passed.
+- `npm run test:e2e` passed 52 applicable tests with 20 intentional skips.
+- A clean `npm run test:e2e:repeat` rerun passed 104 tests with 40 intentional
+  skips. One earlier attempt encountered a Chromium process segfault; the
+  affected test passed before, after, and in the successful rerun.
+- The cold desktop and 390 px first screens plainly identify the job, audience,
+  first action, and provide the one-click isolated sample.
+- A fresh live packet passed normal entry, whitespace validation, exact 100
+  MiB acceptance, 100 MiB + 1 rejection, reload persistence, malformed-backup
+  recovery, and ZIP/PDF/JSON export inspection.
+- Live request logs were same-origin for packet workflows. There were no
+  console/page errors, analytics, uploads, or third-party runtime assets.
+- Offline reload, service-worker update checking, response security/caching,
+  200% text, keyboard/focus, 390 px layout, light/dark contrast, and Axe passed.
+- Mobile Lighthouse median performance was 94 across three runs; accessibility,
+  best practices, and SEO were 100 in all three. Initial JS is 16.69 kB gzip,
+  CSS is 5.53 kB gzip, and the mobile hero is 32.91 kB.
+- The Sociobot license verifier allowed 30 requests and returned 429 on request
+  31 with `Retry-After: 4`.
 
 ## Known gaps and next steps
 
 None.
+
+## Scope
+
+No product code or deployment was changed. Only the independent verification
+report and this handoff were committed.

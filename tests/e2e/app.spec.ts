@@ -720,6 +720,22 @@ test('moves focus and announces the destination for route navigation and browser
   await expect(page.locator('#route-announcement')).toHaveText('Opened Build a complete invoice evidence packet.');
 });
 
+test('keeps route focus and announcements in the isolated query demo', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await expect(page.getByText('Demo — sample data, nothing is saved to your packets')).toBeVisible();
+
+  await page.getByRole('link', { name: 'Privacy', exact: true }).first().click();
+  const privacyHeading = page.getByRole('heading', { level: 1, name: 'Privacy', exact: true });
+  await expect(privacyHeading).toBeFocused();
+  await expect(page.locator('#route-announcement')).toHaveText('Opened Privacy');
+
+  await page.goBack();
+  const demoHeading = page.getByRole('heading', { level: 1, name: 'Your packets', exact: true });
+  await expect(demoHeading).toBeFocused();
+  await expect(page.locator('#route-announcement')).toHaveText('Opened Your packets');
+  await expect(page.getByText('Demo — sample data, nothing is saved to your packets')).toBeVisible();
+});
+
 test('ships complete metadata for static routes and the designed 404 page', async ({ request }) => {
   for (const [path, title, canonical] of [
     ['/demo/', 'Demo — Invoice Packet', 'https://invoice-evidence-pack.sociobot.in/demo/'],

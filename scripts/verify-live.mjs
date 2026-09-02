@@ -70,6 +70,19 @@ try {
   result.demo = { url: page.url(), banner: true, reset: true, databases, taskLabels: true };
   assert(databases.includes('demo:invoice-packet'), 'The isolated demo database was not used.');
 
+  await page.getByRole('link', { name: 'Privacy', exact: true }).first().click();
+  const demoPrivacyHeading = page.getByRole('heading', { level: 1, name: 'Privacy', exact: true });
+  await demoPrivacyHeading.waitFor();
+  assert(await demoPrivacyHeading.evaluate((element) => element === document.activeElement), 'Demo Privacy heading did not receive focus.');
+  assert(await page.locator('#route-announcement').innerText() === 'Opened Privacy', 'Demo Privacy route was not announced.');
+  await page.goBack();
+  const demoHeading = page.getByRole('heading', { level: 1, name: 'Your packets', exact: true });
+  await demoHeading.waitFor();
+  assert(await demoHeading.evaluate((element) => element === document.activeElement), 'Demo Back did not restore route focus.');
+  assert(await page.locator('#route-announcement').innerText() === 'Opened Your packets', 'Demo Back route was not announced.');
+  assert(await page.getByText('Demo — sample data, nothing is saved to your packets').isVisible(), 'Demo banner disappeared after Back.');
+  result.demo = { ...result.demo, focus: true, backFocus: true, routeAnnouncement: true };
+
   await page.goto(`${origin}/`);
   await page.getByRole('link', { name: 'Privacy', exact: true }).first().click();
   const privacyHeading = page.getByRole('heading', { level: 1, name: 'Privacy', exact: true });

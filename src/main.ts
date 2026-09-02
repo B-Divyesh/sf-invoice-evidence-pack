@@ -352,7 +352,10 @@ async function handleAction(button: HTMLElement): Promise<void> {
 
 function bindGlobalEvents(): void {
   document.querySelectorAll<HTMLAnchorElement>('a[data-route]').forEach((link) => link.addEventListener('click', (event) => {
-    if (demoMode || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    // Legal pages are part of the same app even when the visitor is using
+    // sample data. Keeping this navigation in-app preserves the demo storage
+    // boundary and lets the route change move focus to the destination h1.
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
     navigate(link.href);
   }));
@@ -503,7 +506,10 @@ async function initialize(): Promise<void> {
   if (demoMode) licensed = true;
   else { captureReturnedLicense(); licensed = hasOptimisticLicense(); }
   render();
-  if (!demoMode) window.addEventListener('popstate', () => render(true));
+  // A demo can visit Privacy or Terms without leaving its isolated data
+  // namespace. Back/Forward must therefore use the same focus and polite
+  // announcement behaviour as the normal workspace.
+  window.addEventListener('popstate', () => render(true));
   window.addEventListener('online', () => { online = true; render(); });
   window.addEventListener('offline', () => { online = false; render(); });
   try {

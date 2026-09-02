@@ -1,0 +1,125 @@
+{
+  "desktop": {
+    "light": {
+      "seriousCritical": [],
+      "all": []
+    },
+    "dark": {
+      "seriousCritical": [],
+      "all": []
+    },
+    "demo": {
+      "seriousCritical": [],
+      "all": []
+    },
+    "h1": [
+      "Your packets"
+    ],
+    "errors": []
+  },
+  "mobile": {
+    "seriousCritical": [],
+    "all": [],
+    "dimensions": {
+      "client": 390,
+      "scroll": 390,
+      "body": 390
+    },
+    "smallTargets": [
+      {
+        "tag": "INPUT",
+        "text": "file",
+        "width": 26,
+        "height": 22
+      },
+      {
+        "tag": "INPUT",
+        "text": "checkbox",
+        "width": 20,
+        "height": 20
+      },
+      {
+        "tag": "INPUT",
+        "text": "file",
+        "width": 26,
+        "height": 22
+      },
+      {
+        "tag": "INPUT",
+        "text": "checkbox",
+        "width": 20,
+        "height": 20
+      },
+      {
+        "tag": "INPUT",
+        "text": "file",
+        "width": 26,
+        "height": 22
+      },
+      {
+        "tag": "INPUT",
+        "text": "checkbox",
+        "width": 20,
+        "height": 20
+      },
+      {
+        "tag": "INPUT",
+        "text": "file",
+        "width": 26,
+        "height": 22
+      },
+      {
+        "tag": "INPUT",
+        "text": "checkbox",
+        "width": 20,
+        "height": 20
+      },
+      {
+        "tag": "INPUT",
+        "text": "file",
+        "width": 26,
+        "height": 22
+      },
+      {
+        "tag": "INPUT",
+        "text": "checkbox",
+        "width": 20,
+        "height": 20
+      },
+      {
+        "tag": "INPUT",
+        "text": "file",
+        "width": 26,
+        "height": 22
+      },
+      {
+        "tag": "INPUT",
+        "text": "checkbox",
+        "width": 20,
+        "height": 20
+      },
+      {
+        "tag": "INPUT",
+        "text": "checkbox",
+        "width": 20,
+        "height": 20
+      }
+    ],
+    "errors": [],
+    "h1": [
+      "Your packets"
+    ]
+  },
+  "reducedMotion": {
+    "matches": true,
+    "maxTransitionSeconds": 0.00001,
+    "maxAnimationSeconds": 0.00001,
+    "scrollBehavior": "auto"
+  },
+  "textResize200": {
+    "client": 1280,
+    "scroll": 1280,
+    "h1Visible": true,
+    "mainVisible": true
+  }
+}

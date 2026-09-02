@@ -1,0 +1,47 @@
+{
+  "update": {
+    "active": "https://invoice-evidence-pack.sociobot.in/sw.js",
+    "waiting": false,
+    "installing": false
+  },
+  "cacheNames": [
+    "invoice-packet-dc38210ab242"
+  ],
+  "cachedCount": 22,
+  "cachedJs": [
+    "/_app/_commonjsHelpers-CqkleIqs.js",
+    "/_app/fontkit.es-DN2mt28P.js",
+    "/_app/index-BXCRZM89.js",
+    "/_app/index-CIV_UaU8.js",
+    "/_app/index-CxjpqVDI.js",
+    "/_app/index-Dz7QYgOd.js",
+    "/_app/runtime-DdLkqw21.js"
+  ],
+  "cachedCompactFonts": [
+    "/assets/noto-sans-devanagari.ttf",
+    "/assets/noto-sans-jp.ttf"
+  ],
+  "cachedFullFonts": [],
+  "offlineStatus": "Offline",
+  "zip": {
+    "name": "Kite-Studio-August-client-review.zip",
+    "entries": [
+      "manifest.json",
+      "README.txt",
+      "evidence/INV-2026-042.txt",
+      "evidence/signed-scope.txt",
+      "evidence/client-acceptance.txt",
+      "evidence/payment-advice.txt"
+    ],
+    "title": "Kite Studio · August client review",
+    "present": 4
+  },
+  "pdf": {
+    "name": "Kite-Studio-August-client-review-manifest.pdf",
+    "hasTitle": true,
+    "hasClient": true
+  },
+  "externalRequests": [],
+  "failed": [],
+  "consoleErrors": []
+}

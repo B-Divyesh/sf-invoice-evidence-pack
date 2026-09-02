@@ -1,0 +1,100 @@
+{
+  "firstTab": {
+    "text": "Skip to main content",
+    "outline": "rgb(155, 94, 18) solid 3px",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(155, 94, 18)"
+  },
+  "trail": [
+    "Skip to main content",
+    "Invoice Packet",
+    "Packets",
+    "Demo",
+    "Privacy",
+    "Terms",
+    "",
+    "Try it with sample data",
+    "Start your first packet"
+  ],
+  "invalid": {
+    "message": "Enter a packet name that contains at least one non-space character.",
+    "focused": true,
+    "ariaInvalid": "true"
+  },
+  "expectedHash": "2707e358aabcf410671f5bd70de987fea32db26cb5694674685531534d4dcce6",
+  "shownHash": "2707e358aabcf410671f5bd70de987fea32db26cb5694674685531534d4dcce6",
+  "hashMatches": true,
+  "persisted": {
+    "title": "QA cross-border review",
+    "currency": "EUR",
+    "notes": "Payment landed net of a EUR 12 bank fee.",
+    "progress": "25%\n3 required items missing\n1 of 4 required items collected",
+    "fileVisible": true,
+    "hash": "2707e358aabcf410671f5bd70de987fea32db26cb5694674685531534d4dcce6",
+    "h1": [
+      "Your packets"
+    ]
+  },
+  "zip": {
+    "filename": "QA-cross-border-review.zip",
+    "entries": [
+      "manifest.json",
+      "README.txt",
+      "evidence/01-evidence.txt"
+    ],
+    "manifestEvidence": [
+      {
+        "filename": "01-evidence.txt",
+        "archiveFilename": "01-evidence.txt",
+        "status": "present",
+        "hash": "2707e358aabcf410671f5bd70de987fea32db26cb5694674685531534d4dcce6"
+      },
+      {
+        "filename": null,
+        "archiveFilename": null,
+        "status": "missing-required",
+        "hash": null
+      },
+      {
+        "filename": null,
+        "archiveFilename": null,
+        "status": "missing-required",
+        "hash": null
+      },
+      {
+        "filename": null,
+        "archiveFilename": null,
+        "status": "missing-required",
+        "hash": null
+      },
+      {
+        "filename": null,
+        "archiveFilename": null,
+        "status": "not-provided-optional",
+        "hash": null
+      }
+    ]
+  },
+  "backup": {
+    "filename": "invoice-packet-backup-2026-09-01.json",
+    "format": "invoice-packet-backup",
+    "packetCount": 1
+  },
+  "recovery": {
+    "message": "This backup file is damaged or not valid JSON. Choose an Invoice Packet JSON backup and try again.",
+    "packetStillPresent": true
+  },
+  "requests": [
+    "https://invoice-evidence-pack.sociobot.in/",
+    "https://invoice-evidence-pack.sociobot.in/assets/hero-field-guide-768.webp",
+    "https://invoice-evidence-pack.sociobot.in/_app/index-CIV_UaU8.js",
+    "https://invoice-evidence-pack.sociobot.in/_app/index-BVbODO2q.css",
+    "https://invoice-evidence-pack.sociobot.in/icons/mark.svg",
+    "https://invoice-evidence-pack.sociobot.in/assets/hero-field-guide-1536.webp",
+    "https://invoice-evidence-pack.sociobot.in/_app/index-CxjpqVDI.js",
+    "blob:https://invoice-evidence-pack.sociobot.in/0a9bad35-2257-474c-8d3a-62cb6ab902e7"
+  ],
+  "external": [],
+  "bad": [],
+  "errors": []
+}

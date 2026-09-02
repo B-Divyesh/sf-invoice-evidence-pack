@@ -1,0 +1,80 @@
+[
+  {
+    "text": "Replace",
+    "width": 75.4,
+    "height": 44,
+    "visible": true
+  },
+  {
+    "text": "Required",
+    "width": 103.5,
+    "height": 44,
+    "visible": true
+  },
+  {
+    "text": "Replace",
+    "width": 75.4,
+    "height": 44,
+    "visible": true
+  },
+  {
+    "text": "Required",
+    "width": 103.5,
+    "height": 44,
+    "visible": true
+  },
+  {
+    "text": "Replace",
+    "width": 75.4,
+    "height": 44,
+    "visible": true
+  },
+  {
+    "text": "Required",
+    "width": 103.5,
+    "height": 44,
+    "visible": true
+  },
+  {
+    "text": "Replace",
+    "width": 75.4,
+    "height": 44,
+    "visible": true
+  },
+  {
+    "text": "Required",
+    "width": 103.5,
+    "height": 44,
+    "visible": true
+  },
+  {
+    "text": "Add evidence",
+    "width": 173.5,
+    "height": 46,
+    "visible": true
+  },
+  {
+    "text": "Required",
+    "width": 103.5,
+    "height": 44,
+    "visible": true
+  },
+  {
+    "text": "Add evidence",
+    "width": 173.5,
+    "height": 46,
+    "visible": true
+  },
+  {
+    "text": "Required",
+    "width": 103.5,
+    "height": 44,
+    "visible": true
+  },
+  {
+    "text": "Redact original filenames in exports",
+    "width": 318,
+    "height": 44,
+    "visible": true
+  }
+]

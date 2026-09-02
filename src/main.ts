@@ -64,8 +64,8 @@ function legalPage(kind: 'privacy' | 'terms'): string {
   const terms = `<p class="eyebrow">Effective 28 August 2026</p><h1 id="route-heading" tabindex="-1">Terms</h1>
     <p class="lede">Invoice Packet helps organize evidence. It does not provide legal, tax, accounting, foreign-exchange, or filing advice, and it does not submit anything to an authority.</p>
     <h2>Your responsibility</h2><p>You decide which checklist applies, verify packet contents, keep backups, use suitable passwords, and obtain professional advice for your jurisdiction. A “complete” label means only that every item you marked required has a file.</p>
-    <h2>License features</h2><p>An existing license enables reusable custom templates and encrypted ZIP exports. Core packet building, hashing, JSON backup, plain ZIP, and PDF manifests remain free. Sociobot/Dodo is the merchant of record and handles payment and refunds. A refund or charge reversal revokes the license.</p>
-    <h2>Software and availability</h2><p>The software is provided “as is,” without warranties. Browser storage can be cleared by device policy or user action, so keep independent backups. License verification may be temporarily unavailable offline; a recent valid verdict continues optimistically.</p>
+    <h2>License features</h2><p>An existing license enables reusable custom templates and encrypted ZIP exports. Core packet building, hashing, JSON backup, plain ZIP, and PDF manifests remain free. If license verification returns “revoked,” paid tools become unavailable. Free exports remain available.</p>
+    <h2>Software and availability</h2><p>The software is provided “as is,” without warranties. Browser storage can be cleared by device policy or user action, so keep independent backups. A saved valid license keeps paid tools available while offline. Invoice Packet checks it when your connection returns.</p>
     <h2>Acceptable use</h2><p>Do not use the service or billing endpoint unlawfully, attempt to defeat license checks, or package malicious files for others.</p>`;
   return `${header()}<main id="main" class="legal"><article>${kind === 'privacy' ? privacy : terms}<p><a class="text-link" href="/" data-route>Return to your packets</a></p></article></main>${footer()}`;
 }
@@ -115,7 +115,7 @@ function dialogs(): string {
     <label>License token<input name="license" required autocomplete="off" spellcheck="false"></label>
     <p class="form-error" id="license-error" aria-live="polite"></p>
     <button class="button secondary full" type="submit">Verify and restore</button>
-    <p class="fine-print">Sociobot/Dodo is the merchant of record. Refunds are handled there and revoke the license. <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
+    <p class="fine-print">A revoked license disables paid tools. Free exports remain available. <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
   </form></dialog>
   <input type="file" id="backup-input" accept="application/json,.json" hidden>`;
 }
@@ -124,7 +124,7 @@ function emptyState(): string {
   return `<section class="hero">
     <div class="hero-copy"><p class="eyebrow">Private invoice evidence packets</p><h1 id="route-heading" tabindex="-1">Build a complete invoice evidence packet.</h1>
       <p>For cross-border freelancers and small firms preparing files for an accountant, client, or filing review.</p>
-      <div class="hero-actions"><a class="button primary" href="/?demo=1">Try it with sample data</a><button class="button secondary" data-action="new">${icon('plus')} Start your first packet</button></div>
+      <div class="hero-actions"><a class="button primary" href="/?demo=1" data-full-route-focus>Try it with sample data</a><button class="button secondary" data-action="new">${icon('plus')} Start your first packet</button></div>
       <p class="action-note">The sample opens a separate workspace. Your own packet starts with a checklist.</p>
       <ul class="hero-facts"><li>Stored only in this browser</li><li>Works offline after the first visit</li><li>Free ZIP, PDF, and JSON exports</li></ul>
       <button class="text-button empty-import" data-action="import">${icon('file')} Import backup from another device</button>
@@ -525,7 +525,7 @@ async function initialize(): Promise<void> {
   window.addEventListener('pageshow', (event) => {
     if (event.persisted) render(true);
   });
-  window.addEventListener('online', () => { online = true; render(); });
+  window.addEventListener('online', () => { online = true; render(); void reconcileLicense(); });
   window.addEventListener('offline', () => { online = false; render(); });
   try {
     [packets, customTemplates] = await Promise.all([listPackets(), listCustomTemplates()]);
@@ -537,9 +537,19 @@ async function initialize(): Promise<void> {
     selectedId = packets[0]?.id || '';
   } catch (cause) { storageError = cause instanceof Error ? cause.message : 'This browser did not provide persistent local storage.'; }
   loading = false; render(initialRouteFocus); void registerServiceWorker();
-  if (!demoMode && licensed && navigator.onLine) {
-    try { const result = await verifyLicense(); if (!result.valid) { licensed = false; render(); announce('This license is no longer active. Free tools remain available.'); } } catch { /* cached offline access remains */ }
-  }
+  await reconcileLicense();
+}
+
+async function reconcileLicense(): Promise<void> {
+  if (demoMode || !licensed || !navigator.onLine) return;
+  try {
+    const result = await verifyLicense();
+    if (!result.valid) {
+      licensed = false;
+      render();
+      announce('This license is no longer active. Free tools remain available.');
+    }
+  } catch { /* Cached access remains until verification succeeds. */ }
 }
 
 function shouldFocusInitialRoute(): boolean {

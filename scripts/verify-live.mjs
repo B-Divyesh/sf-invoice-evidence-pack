@@ -15,6 +15,7 @@ const result = {
   demo: {},
   routes: {},
   footer: {},
+  license: {},
   noAccount: {},
   mobile: {},
   offline: {},
@@ -28,7 +29,7 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function observe(page) {
+function observe(page, allowBilling = false) {
   page.on('console', (message) => {
     if (message.type() === 'error' && !intentionalNotFound) result.consoleErrors.push(message.text());
   });
@@ -36,7 +37,8 @@ function observe(page) {
   page.on('requestfailed', (request) => result.failedRequests.push(request.url()));
   page.on('request', (request) => {
     const url = new URL(request.url());
-    if (url.origin !== origin && url.protocol !== 'blob:') result.externalRequests.push(request.url());
+    const isFixtureBillingRequest = allowBilling && url.origin === 'https://api.sociobot.in';
+    if (url.origin !== origin && url.protocol !== 'blob:' && !isFixtureBillingRequest) result.externalRequests.push(request.url());
   });
 }
 
@@ -74,6 +76,10 @@ try {
 
   await page.getByRole('link', { name: 'Try it with sample data' }).click();
   assert(new URL(page.url()).searchParams.get('demo') === '1', 'Demo action did not enter ?demo=1.');
+  const heroDemoHeading = page.getByRole('heading', { level: 1, name: 'Your packets', exact: true });
+  await heroDemoHeading.waitFor();
+  assert(await heroDemoHeading.evaluate((element) => element === document.activeElement), 'The hero demo action did not focus the destination heading.');
+  assert(await page.locator('#route-announcement').innerText() === 'Opened Your packets', 'The hero demo action was not announced.');
   await page.getByText('Demo — sample data, nothing is saved to your packets').waitFor();
   await page.getByRole('heading', { name: 'Kite Studio · August client review' }).waitFor();
   const workspaceText = await page.locator('main').textContent();
@@ -85,7 +91,7 @@ try {
   await page.getByRole('button', { name: 'Reset demo' }).click();
   await page.getByRole('heading', { name: 'Kite Studio · August client review' }).waitFor();
   const databases = await page.evaluate(async () => (await indexedDB.databases()).map((database) => database.name));
-  result.demo = { url: page.url(), banner: true, reset: true, databases, taskLabels: true };
+  result.demo = { url: page.url(), banner: true, reset: true, databases, taskLabels: true, heroFocus: true, heroAnnouncement: true };
   assert(databases.includes('demo:invoice-packet'), 'The isolated demo database was not used.');
 
   await page.getByRole('link', { name: 'Privacy', exact: true }).first().click();
@@ -115,6 +121,10 @@ try {
   await page.goto(`${origin}/terms/`);
   assert(await page.getByRole('heading', { level: 1, name: 'Terms', exact: true }).count() === 1, 'Terms h1 is not literal.');
   assert(await page.title() === 'Terms — Invoice Packet', 'Terms title is wrong.');
+  const termsText = await page.locator('main').innerText();
+  assert(termsText.includes('If license verification returns “revoked,” paid tools become unavailable.'), 'Terms omit the tested revoked-license behavior.');
+  assert(termsText.includes('A saved valid license keeps paid tools available while offline.'), 'Terms omit the tested offline-license behavior.');
+  assert(!/merchant of record|handles payment and refunds|refund or charge reversal/i.test(termsText), 'Terms retain an untested merchant or refund claim.');
   intentionalNotFound = true;
   const notFoundResponse = await page.goto(`${origin}/not-a-real-route`);
   intentionalNotFound = false;
@@ -149,6 +159,58 @@ try {
   await accountPage.getByRole('button', { name: 'Export ZIP packet' }).click();
   result.noAccount = { exported: (await download).suggestedFilename(), registrationStep: false };
   await accountContext.close();
+
+  const revokedContext = await browser.newContext();
+  const revokedPage = await revokedContext.newPage();
+  observe(revokedPage, true);
+  await revokedPage.goto(`${origin}/`);
+  await revokedPage.getByRole('button', { name: 'Start your first packet' }).click();
+  await revokedPage.getByLabel('Packet name Required').fill('Live revocation fixture');
+  await revokedPage.getByRole('button', { name: 'Create packet' }).click();
+  await revokedPage.getByRole('heading', { level: 2, name: 'Live revocation fixture' }).waitFor();
+  await revokedPage.evaluate(() => {
+    localStorage.setItem('sb_license:invoice-evidence-pack', 'live-revoked-fixture');
+    localStorage.setItem('sb_license_verdict:invoice-evidence-pack', JSON.stringify({ valid: true, checkedAt: 0 }));
+  });
+  await revokedPage.route('**/products/invoice-evidence-pack/verify?license=live-revoked-fixture', (route) => route.fulfill({
+    contentType: 'application/json', body: JSON.stringify({ valid: false, reason: 'revoked' }),
+  }));
+  await revokedPage.reload();
+  await revokedPage.getByText('This license is no longer active. Free tools remain available.').waitFor();
+  assert(await revokedPage.getByRole('button', { name: 'Unlock custom templates' }).isVisible(), 'A revoked license did not lock custom templates.');
+  assert(await revokedPage.getByRole('button', { name: 'Unlock encrypted ZIP' }).isVisible(), 'A revoked license did not lock encrypted ZIP export.');
+  assert(await revokedPage.getByRole('button', { name: 'Export ZIP packet' }).isVisible(), 'A revoked license hid free ZIP export.');
+  result.license = { revocation: true };
+  await revokedContext.close();
+
+  const licenseOfflineContext = await browser.newContext();
+  const licenseOfflinePage = await licenseOfflineContext.newPage();
+  observe(licenseOfflinePage, true);
+  await licenseOfflinePage.goto(`${origin}/`);
+  await licenseOfflinePage.getByRole('button', { name: 'Start your first packet' }).click();
+  await licenseOfflinePage.getByLabel('Packet name Required').fill('Live offline license fixture');
+  await licenseOfflinePage.getByRole('button', { name: 'Create packet' }).click();
+  await licenseOfflinePage.getByRole('heading', { level: 2, name: 'Live offline license fixture' }).waitFor();
+  await licenseOfflinePage.evaluate(async () => { await navigator.serviceWorker.ready; });
+  await licenseOfflinePage.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+  await licenseOfflinePage.evaluate(() => {
+    localStorage.setItem('sb_license:invoice-evidence-pack', 'live-offline-license-fixture');
+    localStorage.setItem('sb_license_verdict:invoice-evidence-pack', JSON.stringify({ valid: true, checkedAt: 0 }));
+  });
+  let reconnectChecks = 0;
+  await licenseOfflinePage.route('**/products/invoice-evidence-pack/verify?license=live-offline-license-fixture', (route) => {
+    reconnectChecks += 1;
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ valid: false, reason: 'revoked' }) });
+  });
+  await licenseOfflineContext.setOffline(true);
+  await licenseOfflinePage.reload({ waitUntil: 'domcontentloaded' });
+  await licenseOfflinePage.getByRole('button', { name: 'Encrypted ZIP', exact: true }).waitFor();
+  assert(reconnectChecks === 0, 'The app tried to verify a license while offline.');
+  await licenseOfflineContext.setOffline(false);
+  await licenseOfflinePage.getByRole('button', { name: 'Unlock encrypted ZIP' }).waitFor();
+  assert(reconnectChecks === 1, 'The app did not verify the saved license once after reconnection.');
+  result.license = { ...result.license, offlineVerdict: true, reconnectCheck: true };
+  await licenseOfflineContext.close();
 
   const mobileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const mobilePage = await mobileContext.newPage();

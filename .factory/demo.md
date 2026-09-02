@@ -5,6 +5,9 @@
 - Local URL: <http://127.0.0.1:4173/?demo=1>
 - Entry point: choose **Try it with sample data** on the empty landing page.
 
+The entry action moves focus to **Your packets** and announces the opened page
+before the seeded workspace is used.
+
 The demo opens a seeded cross-border client-review packet for Kite Studio and
 Aozora 株式会社. It includes an invoice, signed scope, client acceptance, payment
 advice, file sizes, and SHA-256 fingerprints. Two optional checklist items are

@@ -1,6 +1,6 @@
 # Copy audit
 
-Audited 2 September 2026. Counts use space-delimited words; hyphenated terms
+Audited 2 September 2026 after polish round 5. Counts use space-delimited words; hyphenated terms
 count as one word. Every sentence below is 22 words or fewer and contains none
 of the banned plain-language terms.
 
@@ -72,3 +72,26 @@ notes, and export terms as the landing page.
 
 The route h1 headings are the literal page names **Privacy** and **Terms**.
 Their explanatory text follows below each heading.
+
+### Terms sentences
+
+| Sentence | Words | Result |
+| --- | ---: | --- |
+| Invoice Packet helps organize evidence. | 5 | Pass |
+| It does not provide legal, tax, accounting, foreign-exchange, or filing advice, and it does not submit anything to an authority. | 20 | Pass — product limit |
+| You decide which checklist applies, verify packet contents, keep backups, use suitable passwords, and obtain professional advice for your jurisdiction. | 20 | Pass |
+| A “complete” label means only that every item you marked required has a file. | 14 | Pass — `missing-flags` |
+| An existing license enables reusable custom templates and encrypted ZIP exports. | 11 | Pass — `custom-templates`, `aes-zip` |
+| Core packet building, hashing, JSON backup, plain ZIP, and PDF manifests remain free. | 13 | Pass — `core-no-setup`, `sha256-hash`, `json-backup`, `free-exports` |
+| If license verification returns “revoked,” paid tools become unavailable. | 9 | Pass — `license-revocation` |
+| Free exports remain available. | 4 | Pass — `license-revocation`, `free-exports` |
+| The software is provided “as is,” without warranties. | 8 | Pass |
+| Browser storage can be cleared by device policy or user action, so keep independent backups. | 15 | Pass |
+| A saved valid license keeps paid tools available while offline. | 10 | Pass — `offline-license-verdict` |
+| Invoice Packet checks it when your connection returns. | 8 | Pass — `offline-license-verdict` |
+| Do not use the service or billing endpoint unlawfully, attempt to defeat license checks, or package malicious files for others. | 20 | Pass |
+
+The earlier merchant, payment-handler, refund, and charge-reversal statements
+were removed because the default build has no checkout and cannot prove those
+external policies. The license dialog now states only the tested revoked-license
+behavior.

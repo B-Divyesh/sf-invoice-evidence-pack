@@ -37,17 +37,28 @@ async function store(name: string, mode: IDBTransactionMode): Promise<IDBObjectS
   return db.transaction(name, mode).objectStore(name);
 }
 
+async function mutateStore(name: string, mutate: (store: IDBObjectStore) => void): Promise<void> {
+  const db = await openDatabase();
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(name, 'readwrite');
+    mutate(transaction.objectStore(name));
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error ?? new Error('Could not save local data.'));
+    transaction.onabort = () => reject(transaction.error ?? new Error('Saving local data was cancelled.'));
+  });
+}
+
 export async function listPackets(): Promise<Packet[]> {
   const rows = await request((await store(PACKETS, 'readonly')).getAll() as IDBRequest<Packet[]>);
   return rows.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
 export async function savePacket(packet: Packet): Promise<void> {
-  await request((await store(PACKETS, 'readwrite')).put(packet));
+  await mutateStore(PACKETS, (packets) => { packets.put(packet); });
 }
 
 export async function removePacket(id: string): Promise<void> {
-  await request((await store(PACKETS, 'readwrite')).delete(id));
+  await mutateStore(PACKETS, (packets) => { packets.delete(id); });
 }
 
 export async function listCustomTemplates(): Promise<PacketTemplate[]> {
@@ -55,7 +66,7 @@ export async function listCustomTemplates(): Promise<PacketTemplate[]> {
 }
 
 export async function saveTemplate(template: PacketTemplate): Promise<void> {
-  await request((await store(TEMPLATES, 'readwrite')).put(template));
+  await mutateStore(TEMPLATES, (templates) => { templates.put(template); });
 }
 
 export async function replaceAllData(packets: Packet[], templates: PacketTemplate[]): Promise<void> {

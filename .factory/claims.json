@@ -2,7 +2,7 @@
   {
     "id": "demo-sandbox",
     "claim": "Try the product with realistic sample data in a separate demo workspace.",
-    "where": "landing primary action, demo banner, README",
+    "where": "landing primary action, demo banner, demo guide, README",
     "test": "npm run test:e2e -- --project=chromium --grep @claim:demo-sandbox",
     "sandbox": "fresh Chromium context; open the landing page; follow the one-click demo link; assert the seeded packet and banner"
   },
@@ -103,6 +103,20 @@
     "where": "license dialog, terms, README",
     "test": "npm run test:e2e -- --project=chromium --grep @claim:license-restore",
     "sandbox": "fresh Chromium context; assert the operator-gated build has no checkout link, paste a fixture token, intercept its verification response, and observe paid tools unlock"
+  },
+  {
+    "id": "license-revocation",
+    "claim": "If license verification returns revoked, paid tools become unavailable while free exports remain available.",
+    "where": "license dialog, terms",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:license-revocation",
+    "sandbox": "fresh Chromium context with a saved valid verdict and packet; intercept a fixture revoked response; assert encrypted ZIP and custom templates lock while plain ZIP and PDF remain available"
+  },
+  {
+    "id": "offline-license-verdict",
+    "claim": "A locally saved valid license keeps paid tools available while offline and is checked after reconnection.",
+    "where": "terms",
+    "test": "npm run test:e2e -- --project=chromium --grep @claim:offline-license-verdict",
+    "sandbox": "fresh service-worker-controlled Chromium context with a fixture valid verdict; reload offline and assert paid tools remain available; reconnect to a fixture revoked response and assert they lock"
   },
   {
     "id": "checkout-operator-gate",

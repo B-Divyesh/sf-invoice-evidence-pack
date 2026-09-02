@@ -360,6 +360,66 @@ test('@claim:license-restore @claim:checkout-operator-gate keeps checkout operat
   expect(await page.evaluate(() => localStorage.getItem('sb_license:invoice-evidence-pack'))).toBe('existing-license');
 });
 
+test('@claim:license-revocation locks paid tools after a fixture revoked verdict', async ({ browser }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  await withIsolatedPage(browser, async (page) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Start your first packet' }).click();
+    await page.getByLabel('Packet name Required').fill('Revocation fixture packet');
+    await page.getByRole('button', { name: 'Create packet' }).click();
+    await expect(page.getByRole('heading', { level: 2, name: 'Revocation fixture packet' })).toBeVisible();
+    await page.evaluate(() => {
+      localStorage.setItem('sb_license:invoice-evidence-pack', 'revoked-fixture');
+      localStorage.setItem('sb_license_verdict:invoice-evidence-pack', JSON.stringify({ valid: true, checkedAt: 0 }));
+    });
+    await page.route('**/products/invoice-evidence-pack/verify?license=revoked-fixture', (route) => route.fulfill({
+      contentType: 'application/json', body: JSON.stringify({ valid: false, reason: 'revoked' }),
+    }));
+
+    await page.reload();
+    await expect(page.getByText('This license is no longer active. Free tools remain available.')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Unlock custom templates' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Unlock encrypted ZIP' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Export ZIP packet' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Export PDF manifest' })).toBeVisible();
+  });
+});
+
+test('@claim:offline-license-verdict keeps a saved valid verdict offline and checks it after reconnection', async ({ browser }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium');
+  await withIsolatedPage(browser, async (page, context) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Start your first packet' }).click();
+    await page.getByLabel('Packet name Required').fill('Offline license fixture packet');
+    await page.getByRole('button', { name: 'Create packet' }).click();
+    await expect(page.getByRole('heading', { level: 2, name: 'Offline license fixture packet' })).toBeVisible();
+    await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+    await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+    await page.evaluate(() => {
+      localStorage.setItem('sb_license:invoice-evidence-pack', 'offline-valid-fixture');
+      localStorage.setItem('sb_license_verdict:invoice-evidence-pack', JSON.stringify({ valid: true, checkedAt: 0 }));
+    });
+    let verificationRequests = 0;
+    await page.route('**/products/invoice-evidence-pack/verify?license=offline-valid-fixture', (route) => {
+      verificationRequests += 1;
+      return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ valid: false, reason: 'revoked' }) });
+    });
+
+    await context.setOffline(true);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.locator('.network')).toHaveClass(/offline/);
+    await expect(page.getByRole('button', { name: 'Save as template' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Encrypted ZIP', exact: true })).toBeVisible();
+    expect(verificationRequests).toBe(0);
+
+    await context.setOffline(false);
+    await expect(page.getByText('This license is no longer active. Free tools remain available.')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Unlock custom templates' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Unlock encrypted ZIP' })).toBeVisible();
+    expect(verificationRequests).toBe(1);
+  });
+});
+
 test('@claim:core-no-setup creates and exports a packet without external requests', async ({ browser }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium');
   await withIsolatedPage(browser, async (page) => {
@@ -503,6 +563,8 @@ test('@claim:demo-sandbox @claim:local-only opens a useful isolated demo without
   await page.goto('/');
   await page.getByRole('link', { name: 'Try it with sample data' }).click();
   await expect(page).toHaveURL(/\?demo=1$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Your packets', exact: true })).toBeFocused();
+  await expect(page.locator('#route-announcement')).toHaveText('Opened Your packets');
   await expect(page.getByText('Demo — sample data, nothing is saved to your packets')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Reset demo' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Kite Studio · August client review' })).toBeVisible();
@@ -757,6 +819,15 @@ test('moves focus and announces after header Demo navigation and browser back', 
   const landingHeading = page.getByRole('heading', { level: 1, name: 'Build a complete invoice evidence packet.' });
   await expect(landingHeading).toBeFocused();
   await expect(page.locator('#route-announcement')).toHaveText('Opened Build a complete invoice evidence packet.');
+});
+
+test('moves focus and announces after the hero sample-data action', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Try it with sample data' }).click();
+  await expect(page).toHaveURL(/\?demo=1$/);
+  const demoHeading = page.getByRole('heading', { level: 1, name: 'Your packets', exact: true });
+  await expect(demoHeading).toBeFocused();
+  await expect(page.locator('#route-announcement')).toHaveText('Opened Your packets');
 });
 
 test('keeps route focus and announcements in the isolated query demo', async ({ page }) => {

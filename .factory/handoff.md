@@ -1,64 +1,41 @@
-# Invoice Packet polish-6 handoff — 2026-09-02
+# Invoice Packet verification-16 handoff — PASS
 
 ## Outcome
 
-Released repair `1bcbb84c0b2686a20d224f2e59f83b72a872e406` and deployed it as
-Azure Static Web Apps deployment `013d9ff5-aac4-46fb-94e0-b2a60cfd5485`.
-The live product is <https://invoice-evidence-pack.sociobot.in>.
+**PASS** for candidate `2f3e52f519d87a724a8f9db58faa4e6cc6fe7d63` at
+<https://invoice-evidence-pack.sociobot.in>, independently verified on
+2026-09-02 UTC. The live PWA matches the candidate build. No product defect was
+confirmed.
 
-Every finding from reviews 1–6 is closed. Round 6 makes **Storage and export
-privacy** a real h2 and accessible section name, changes the connected status
-to **Online**, and removes the decorative **Plate 01** label. The botanical
-field-guide identity remains intact.
+## Verification summary
 
-The one-click `?demo=1` sample remains isolated in
-`demo:invoice-packet`. Its banner, Reset demo, and Start for real controls all
-work without reading or overwriting normal packet data.
+- All 25 exact `.factory/claims.json` commands passed.
+- `npm ci` reported 0 vulnerabilities; `npm test` passed 11/11;
+  `npm run check`, `npm run build`, and `npm run test:e2e` passed.
+- Full browser suite: 54 applicable cases passed; 20 intentional project skips.
+- Cold first-read and one-click sample gates passed on desktop and 390 px.
+- Independent live Payment trail flow passed validation, hashing, persistence,
+  ZIP/PDF/JSON export inspection, 100 MiB boundary, and malformed-import
+  recovery.
+- Demo isolation/reset/exit, AES-256 export, wrong-password rejection, and
+  reusable templates passed.
+- Browser privacy logs contained only the product origin and no runtime errors.
+- Deployment policy and local/live byte identity passed.
+- Axe: zero violations across 16 route/theme/viewport combinations. Keyboard,
+  focus, dialogs, 44 px targets, 200% text, and reduced motion passed.
+- Service-worker update, versioned cache, offline reload, and first-use offline
+  ZIP/PDF exports passed.
+- License verifier allowance: 30 successful requests; request 31 returned 429
+  with `Retry-After: 4`.
+- Lighthouse mobile performance: 100/99/94 (median 99); accessibility, best
+  practices, and SEO were 100 in all three runs. LCP 1.12–1.35 s; CLS 0;
+  transfer 71.8–71.9 kB.
 
-## Verification
+Full evidence and exact hashes are in
+[verification-16.md](verification-16.md). Captured browser and Lighthouse
+artifacts are under [`evidence/verification-16`](evidence/verification-16/).
 
-- Fresh clone `/tmp/invoice-polish6-clean-Mn5qrj`: `npm ci` reported zero
-  vulnerabilities. All 25 commands in `.factory/claims.json` passed
-  individually. Every claim has exactly one matching test tag, with no
-  undeclared tags.
-- Fresh-clone quality gates: `npm test` passed 11/11, `npm run check` passed,
-  `npm run build` produced `dist/`, and `npm run test:e2e` passed 54 applicable
-  cases with 20 intentional cross-project skips.
-- The working-tree stability run passed 108 applicable cases with 40
-  intentional skips using `npm run test:e2e:repeat`.
-- Browser coverage includes desktop and 390 px mobile, both themes, keyboard
-  focus, dialog behavior, demo isolation and reset, normal data preservation,
-  imports, exports, offline reload, first-use offline ZIP/PDF generation, and
-  fixture-backed license behavior.
-- Playwright Axe found no serious or critical issue. The live 390 px demo had
-  no horizontal overflow. The fleet URL verifier reported an 830 ms cold load,
-  one h1, one main, complete alt text, labelled buttons, and no console error.
-- Privacy checks recorded no unexpected external request, failed request, or
-  console error during the complete local or live workflow. License tests
-  permit only the expected fixture request to the Sociobot verification URL.
-- Live mobile Lighthouse: Performance 100, Accessibility 100, Best Practices
-  100, SEO 100; LCP 1.13 s, TBT 0 ms, CLS 0, total transfer 58.4 KiB.
-- Initial application JavaScript is 49.22 kB raw / 16.68 kB gzip. CSS is
-  21.14 kB raw / 5.49 kB gzip. Export and PDF modules remain lazy.
-- `npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in`
-  passed response policy and exact local/live byte identity for the root,
-  service worker, manifest, Demo, Privacy, and Terms documents.
-
-## Round-6 live evidence
-
-The cold live verifier records this exact first-screen outline:
-`H1 Build a complete invoice evidence packet` → `H2 Prepare one packet in
-three steps` → three h3 step headings → `H2 Storage and export privacy`.
-`firstScreen.assuranceName` is `assurance-title`, the connected status is
-`Online`, and the image caption contains only its useful sentence.
-
-- Full result: [live-check.json](evidence/polish-6/live/live-check.json)
-- Desktop: [screenshot-desktop.png](evidence/polish-6/live/verify-url/screenshot-desktop.png)
-- Mobile: [screenshot-mobile.png](evidence/polish-6/live/verify-url/screenshot-mobile.png)
-- Lighthouse: [lighthouse-mobile.json](evidence/polish-6/live/lighthouse-mobile.json)
-- Finding-by-finding map: [polish-6.md](polish-6.md)
-
-## Run and deploy
+## Reproduce
 
 ```sh
 npm ci
@@ -66,13 +43,14 @@ npm test
 npm run check
 npm run build
 npm run test:e2e
-npm run test:e2e:repeat
 npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
-npm run verify:live -- https://invoice-evidence-pack.sociobot.in .factory/evidence/polish-6/live
+npm run verify:live -- https://invoice-evidence-pack.sociobot.in .factory/evidence/verification-16/live
 ```
-
-Deploy `dist/` with `/opt/fleet/lib/deploy-static.sh invoice-evidence-pack dist`.
 
 ## Known gaps and next steps
 
-None. No review finding, test failure, or deferred product work remains.
+No release-blocking gap remains. New-license checkout is intentionally hidden
+in the default operator-gated build until the registered hosted checkout is
+separately enabled and tested; the live product makes no checkout-availability
+claim and keeps the useful core workflow free. No deployment or infrastructure
+change was made by this verification.

@@ -1,0 +1,43 @@
+{
+  "origin": "https://invoice-evidence-pack.sociobot.in",
+  "checkedAt": "2026-09-02T06:51:05.881Z",
+  "findings": {
+    "F-7-6": {
+      "landingTerminology": "checklist"
+    },
+    "F-7-7": {
+      "landingTerminology": "PDF manifest"
+    },
+    "F-7-2": {
+      "dialog": "does not store it and cannot recover it"
+    },
+    "F-7-4": {
+      "templateCopy": "Files are never copied.",
+      "templateContainsNoFiles": true
+    },
+    "F-7-3": {
+      "editedItem": "Live settlement confirmation",
+      "required": false,
+      "persistedAfterReload": true
+    },
+    "F-7-1": {
+      "label": "Back up packets and templates",
+      "backupKeys": [
+        "exportedAt",
+        "format",
+        "packets",
+        "templates",
+        "version"
+      ],
+      "attachmentAndTemplatePresent": true,
+      "themeAndLicenseExcluded": true
+    },
+    "F-7-5": {
+      "deletePacketAndFiles": true,
+      "clearSiteDataRemovesLocalRecordsSettingsAndLicense": true
+    },
+    "F-7-8": {
+      "readmeCheckoutSentence": "exact product identity and no embedded provider key or product ID"
+    }
+  }
+}

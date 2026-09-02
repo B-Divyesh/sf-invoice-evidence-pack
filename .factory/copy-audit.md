@@ -1,6 +1,6 @@
 # Copy audit
 
-Audited 2 September 2026 after polish round 5. Counts use space-delimited words; hyphenated terms
+Audited 2 September 2026 after polish round 6. Counts use space-delimited words; hyphenated terms
 count as one word. Every sentence below is 22 words or fewer and contains none
 of the banned plain-language terms.
 
@@ -27,6 +27,11 @@ Headings, labels, and actions: **Private invoice evidence packets**, **Try it
 with sample data**, **Start your first packet**, **Storage and export privacy**,
 **File fingerprints in each manifest** (`manifest-fingerprints`), **Download ZIP, PDF, or JSON backup**,
 and **Restore an existing license**. Each names the task or result directly.
+**Online** and **Offline** state the connection status without implementation
+jargon. The illustration caption contains only its useful explanation.
+
+The landing heading outline is h1 → h2 → three h3 headings → h2. The
+**Storage and export privacy** h2 labels its section programmatically.
 
 Workspace headings and labels: **Saved packets**, **New packet**, **Packet
 details**, **Collect evidence**, **Evidence files**, **Notes for the reviewer**,
@@ -96,6 +101,22 @@ notes, and export terms as the landing page.
 
 The route h1 headings are the literal page names **Privacy** and **Terms**.
 Their explanatory text follows below each heading.
+
+### Privacy sentences
+
+| Sentence | Words | Result |
+| --- | ---: | --- |
+| Invoice Packet stores its data in this browser. | 8 | Pass — `local-only` |
+| Your invoices, evidence files, notes, and packet records stay here until you delete or export them. | 16 | Pass — `local-only` |
+| Packet details, attachments, file hashes, custom templates, settings, and license tokens are stored locally. | 14 | Pass — `local-only` |
+| We do not operate document storage or analytics for this app. | 10 | Pass — `no-document-backend` |
+| Exported files go only to the location you choose. | 9 | Pass |
+| License verification sends the license token, not packet contents or filenames. | 11 | Pass — `license-verification-minimum-data` |
+| Use “Back up all data” before clearing browser storage or changing devices. | 12 | Pass |
+| Deleting a packet removes its local record and files. | 9 | Pass |
+| Clearing site data removes everything, including the saved license token. | 10 | Pass |
+| New license purchases are not available in this build. | 9 | Pass — `checkout-operator-gate` |
+| You can restore an existing license by pasting its token. | 10 | Pass — `license-restore` |
 
 ### Terms sentences
 

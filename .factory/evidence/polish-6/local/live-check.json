@@ -1,0 +1,81 @@
+{
+  "origin": "http://127.0.0.1:4174",
+  "firstScreen": {
+    "title": "Invoice Packet — build invoice evidence packets",
+    "h1": [
+      "Build a complete invoice evidence packet."
+    ],
+    "headingOutline": [
+      "H1:Build a complete invoice evidence packet.",
+      "H2:Prepare one packet in three steps.",
+      "H3:Choose a checklist",
+      "H3:Add the evidence",
+      "H3:Export the packet",
+      "H2:Storage and export privacy"
+    ],
+    "main": 1,
+    "demoHref": "/?demo=1",
+    "primaryVisible": true,
+    "assuranceName": "assurance-title",
+    "networkStatus": "Online",
+    "heroCaption": "One packet groups an invoice with its supporting evidence."
+  },
+  "demo": {
+    "url": "http://127.0.0.1:4174/?demo=1",
+    "banner": true,
+    "reset": true,
+    "databases": [
+      "demo:invoice-packet",
+      "invoice-packet"
+    ],
+    "taskLabels": true,
+    "heroFocus": true,
+    "heroAnnouncement": true,
+    "focus": true,
+    "backFocus": true,
+    "routeAnnouncement": true
+  },
+  "routes": {
+    "headerDemoFocus": true,
+    "headerDemoBackFocus": true,
+    "headerDemoAnnouncement": true,
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "focus": true,
+    "backFocus": true,
+    "notFoundStatus": 404,
+    "metadata": {
+      "description": true,
+      "canonical": true,
+      "og": true,
+      "twitter": true,
+      "apple": true
+    },
+    "notFoundFooter": true
+  },
+  "footer": {
+    "sourceLabel": true,
+    "newTab": true
+  },
+  "license": {
+    "revocation": true,
+    "offlineVerdict": true,
+    "reconnectCheck": true
+  },
+  "noAccount": {
+    "exported": "Live-no-account-packet.zip",
+    "registrationStep": false
+  },
+  "mobile": {
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "seriousCritical": []
+  },
+  "offline": {
+    "reloaded": true,
+    "status": "Offline"
+  },
+  "consoleErrors": [],
+  "failedRequests": [],
+  "externalRequests": []
+}

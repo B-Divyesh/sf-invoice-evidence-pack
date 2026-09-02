@@ -1,48 +1,39 @@
-# Invoice Packet polish-4 handoff — 2026-09-02
+# Invoice Packet verification handoff — 2026-09-02
 
 ## Outcome
 
-Released repair `24aada5411a163efd945e0f8c8f45efc0e5ab1cd` and deployed it as
-Azure Static Web Apps deployment `a8e566c9-2dff-4d5c-ae76-1265c1aa40ac`.
-The live product is <https://invoice-evidence-pack.sociobot.in>.
+**PASS.** Independently verified candidate
+`e979800f875151c3e437fd8bcd5e6b378cca4b52` at
+<https://invoice-evidence-pack.sociobot.in>. The live deployment is
+byte-identical to the candidate build, all 23 declared claim tests pass, and no
+release-blocking or lower-severity product defect was confirmed.
 
-This repair closes every finding from review 1 through review 4. It adds the
-missing header Demo/history focus contract, a real ZIP-manifest fingerprint
-claim test, an explicit disclosed GitHub source link, and matching 404 footer
-links. The one-click `?demo=1` workspace remains isolated in
-`demo:invoice-packet`, with a persistent banner, Reset demo, and Start for
-real controls.
+The full evidence and exact live hashes are in
+[`.factory/verification-14.md`](verification-14.md).
 
-## Verification
+## Verification summary
 
-- Fresh clone `/tmp/invoice-evidence-pack-clean-OQOP0q`: `npm ci`, all 23
-  exact commands in `.factory/claims.json`, `npm test`, `npm run check`, and
-  `npm run build` passed.
-- Working tree: `npm test` passed 11/11; `npm run check` and `npm run build`
-  passed; `npm run test:e2e` passed 66 tests; `npm run test:e2e:repeat`
-  passed 132 tests.
-- Claim inventory check confirmed 23 claim IDs, exactly one `@claim:<id>` test
-  per ID, and no undeclared tags.
-- Local production-shaped checks passed:
-  `npm run verify:deployment -- http://127.0.0.1:4174`, the Static Web Apps
-  emulator live check, and `verify-url.sh`. The local verifier exercised
-  404s, header Demo → Back focus, one-click demo isolation, request privacy,
-  mobile Axe, and offline reload.
-- Live checks passed:
-  `npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in`,
-  `npm run verify:live -- https://invoice-evidence-pack.sociobot.in
-  .factory/evidence/polish-4/live`, and
-  `/opt/fleet/lib/verify-url.sh https://invoice-evidence-pack.sociobot.in
-  .factory/evidence/polish-4/live/verify-url`.
-- Live URL audit: 1.76s load, no console errors, `lang="en"`, one h1, main
-  landmark, no missing image alt text, and no unlabeled buttons.
-- Live mobile Lighthouse: Performance 100, Accessibility 100, Best Practices
-  100, SEO 100; LCP 1.1s and CLS 0. Evidence is in
-  `.factory/evidence/polish-4/live/lighthouse-mobile.json`.
-- Initial JavaScript remains 16.66 kB gzip and CSS 5.51 kB gzip. Lazy export
-  dependencies are cached after the first visit for offline ZIP/PDF use.
+- Clean locked install: passed with zero reported vulnerabilities.
+- Claims: 23/23 exact commands passed; one unique test tag per claim.
+- Unit tests: 11/11 passed.
+- Type check and exact production build: passed; `dist/` produced.
+- Browser suite: 48 passed, 18 expected project skips.
+- First-read/demo gate: passed on desktop and 390px mobile.
+- Live packet workflow: create, validate, recover, attach, persist, ZIP/PDF
+  export, missing flags, hashes, and JSON backup passed.
+- Privacy: same-origin packet workflow; no analytics, upload, third-party
+  runtime, console error, page error, or failed request observed.
+- PWA: active update check, offline reload, and first-use offline ZIP/PDF
+  exports passed.
+- Accessibility: zero Axe violations across tested light/dark desktop and
+  mobile states; keyboard, focus, reduced motion, reflow, and touch checks
+  passed.
+- Live mobile Lighthouse: 99 performance, 100 accessibility, 100 best
+  practices, 100 SEO; LCP 1.297 s, TBT 127 ms, CLS 0.
+- License verifier allowance: 30 requests; request 31 returned 429 with
+  `Retry-After: 4`.
 
-## Run and deploy
+## Run the core verification
 
 ```sh
 npm ci
@@ -51,11 +42,14 @@ npm run check
 npm run build
 npm run test:e2e
 npm run verify:deployment -- https://invoice-evidence-pack.sociobot.in
+npm run verify:live -- https://invoice-evidence-pack.sociobot.in /tmp/invoice-packet-live
+mkdir -p /tmp/invoice-packet-url
+/opt/fleet/lib/verify-url.sh https://invoice-evidence-pack.sociobot.in /tmp/invoice-packet-url
 ```
 
-Deploy `dist/` with `/opt/fleet/lib/deploy-static.sh invoice-evidence-pack dist`.
+## Known gaps and next steps
 
-## Evidence and next steps
-
-See [.factory/polish-4.md](polish-4.md) for the complete finding map and
-evidence paths. There are no known gaps or deferred findings.
+No known product gaps. New-license checkout remains deliberately unavailable
+in the default build until an operator validates the registered hosted
+checkout; existing-license restoration and all free core exports work. No
+product code or deployment change was made during verification.

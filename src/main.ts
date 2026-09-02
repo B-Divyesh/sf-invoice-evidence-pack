@@ -44,7 +44,7 @@ function header(): string {
       <a href="/" data-route>Packets</a><a href="/demo/" data-full-route-focus>Demo</a><a href="/privacy/" data-route>Privacy</a><a href="/terms/" data-route>Terms</a>
     </nav>
     <div class="header-tools">
-      <span class="network ${online ? '' : 'offline'}" role="status"><span></span>${online ? 'Local first' : 'Offline'}</span>
+      <span class="network ${online ? '' : 'offline'}" role="status"><span></span>${online ? 'Online' : 'Offline'}</span>
       <button class="icon-button" data-action="theme" aria-label="Switch color theme">${icon('sun')}</button>
     </div>
   </header>`;
@@ -56,7 +56,7 @@ function footer(): string {
 
 function legalPage(kind: 'privacy' | 'terms'): string {
   const privacy = `<p class="eyebrow">Effective 28 August 2026</p><h1 id="route-heading" tabindex="-1">Privacy</h1>
-    <p class="lede">Invoice Packet is a local-first tool. Your invoices, evidence files, notes, and packet records stay in your browser's IndexedDB until you delete them or export them.</p>
+    <p class="lede">Invoice Packet stores its data in this browser. Your invoices, evidence files, notes, and packet records stay here until you delete or export them.</p>
     <h2>What stays on your device</h2><p>Packet details, attachments, file hashes, custom templates, settings, and license tokens are stored locally. We do not operate document storage or analytics for this app.</p>
     <h2>When data leaves</h2><p>Exported files go only to the location you choose. License verification sends the license token, not packet contents or filenames.</p>
     <h2>Your controls</h2><p>Use “Back up all data” before clearing browser storage or changing devices. Deleting a packet removes its local record and files. Clearing site data removes everything, including the saved license token.</p>
@@ -129,7 +129,7 @@ function emptyState(): string {
       <ul class="hero-facts"><li>Stored only in this browser</li><li>Works offline after the first visit</li><li>Free ZIP, PDF, and JSON exports</li></ul>
       <button class="text-button empty-import" data-action="import">${icon('file')} Import backup from another device</button>
     </div>
-    <figure class="hero-art"><picture><source srcset="/assets/hero-field-guide-768.webp 768w, /assets/hero-field-guide-1536.webp 1536w" type="image/webp"><img src="/assets/hero-field-guide-768.jpg" width="768" height="512" alt="An open botanical field folio with a blank document, evidence tags, fern specimens, and a magnifying glass" fetchpriority="high" decoding="async"></picture><figcaption><span>Plate 01</span> One packet groups an invoice with its supporting evidence.</figcaption></figure>
+    <figure class="hero-art"><picture><source srcset="/assets/hero-field-guide-768.webp 768w, /assets/hero-field-guide-1536.webp 1536w" type="image/webp"><img src="/assets/hero-field-guide-768.jpg" width="768" height="512" alt="An open botanical field folio with a blank document, evidence tags, fern specimens, and a magnifying glass" fetchpriority="high" decoding="async"></picture><figcaption>One packet groups an invoice with its supporting evidence.</figcaption></figure>
   </section>
   <section class="method" aria-labelledby="method-title"><div><p class="eyebrow">How it works</p><h2 id="method-title">Prepare one packet in three steps.</h2></div><ol><li><span>01</span><div><h3>Choose a checklist</h3><p>Start with a filing, client review, or payment trail list. Change it to match the request.</p></div></li><li><span>02</span><div><h3>Add the evidence</h3><p>Each file stays in this browser and receives a SHA-256 fingerprint.</p></div></li><li><span>03</span><div><h3>Export the packet</h3><p>Download the evidence and manifest as ZIP, or make a PDF index.</p></div></li></ol></section>`;
 }
@@ -229,7 +229,7 @@ function render(routeChanged = false): void {
   app.innerHTML = `${header()}${demoBanner()}<main id="main">${hiddenHeading}
     ${updateWorker ? '<div class="update-note" role="status">A new app version is ready. <button data-action="update-sw">Update now</button></div>' : ''}
     ${loading ? '<div class="loading-state" role="status"><span class="pressed-leaf"></span><p>Opening your saved packets…</p></div>' : storageError ? `<section class="error-state"><p class="eyebrow">Storage unavailable</p><h2>Your saved packets could not open.</h2><p>${escapeHtml(storageError)}</p><button class="button secondary" data-action="reload">Reload the app</button></section>` : packets.length ? workspace() : emptyState()}
-    <section class="assurance"><p class="eyebrow">Storage and export privacy</p><div><strong>Stored locally</strong><span>No document cloud and no account.</span></div><div><strong>File fingerprints in each manifest</strong><span>SHA-256 fingerprints travel with the manifest.</span></div><div><strong>Download ZIP, PDF, or JSON backup</strong><span>Plain ZIP, PDF, and full JSON backup are free.</span></div>${demoMode ? '<span class="demo-paid-note">Paid tools are included in this demo.</span>' : `<button class="text-button" data-action="license">${licensed ? 'Paid tools active' : checkoutEnabled ? 'View encrypted-export options' : 'Restore an existing license'}</button>`}</section>
+    <section class="assurance" aria-labelledby="assurance-title"><h2 class="eyebrow" id="assurance-title">Storage and export privacy</h2><div><strong>Stored locally</strong><span>No document cloud and no account.</span></div><div><strong>File fingerprints in each manifest</strong><span>SHA-256 fingerprints travel with the manifest.</span></div><div><strong>Download ZIP, PDF, or JSON backup</strong><span>Plain ZIP, PDF, and full JSON backup are free.</span></div>${demoMode ? '<span class="demo-paid-note">Paid tools are included in this demo.</span>' : `<button class="text-button" data-action="license">${licensed ? 'Paid tools active' : checkoutEnabled ? 'View encrypted-export options' : 'Restore an existing license'}</button>`}</section>
   </main>${footer()}${dialogs()}<div class="toast" role="status" aria-live="polite" aria-atomic="true">${escapeHtml(notice)}</div>`;
   bindGlobalEvents();
   if (routeChanged) focusRouteHeading();

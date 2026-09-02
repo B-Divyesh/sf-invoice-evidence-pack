@@ -84,8 +84,7 @@ main { min-height: 62vh; }
 .hero-art { position: relative; margin: 0; transform: rotate(1.15deg); }
 .hero-art::before { content: ""; position: absolute; z-index: -1; inset: 16px -14px -18px 18px; background: var(--lichen); border: 1px solid var(--line); box-shadow: var(--shadow); transform: rotate(-2.3deg); }
 .hero-art img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border: 9px solid var(--sheet); box-shadow: var(--shadow); }
-.hero-art figcaption { display: flex; gap: 16px; margin-top: 18px; padding-left: 6px; color: var(--muted); font: italic 14px Georgia, serif; }
-.hero-art figcaption span { color: var(--ink); font: 800 11px ui-sans-serif, system-ui, sans-serif; letter-spacing: .13em; text-transform: uppercase; }
+.hero-art figcaption { margin-top: 18px; padding-left: 6px; color: var(--muted); font: italic 14px Georgia, serif; }
 .button { min-height: 46px; display: inline-flex; justify-content: center; align-items: center; gap: 9px; padding: 10px 18px; border: 1px solid var(--moss); border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: 800; line-height: 1.2; transition: transform 180ms ease, box-shadow 180ms ease; }
 .button:hover { transform: translateY(-1px); box-shadow: 0 7px 20px rgb(24 49 41 / 12%); }
 .button:active { transform: translateY(1px); }

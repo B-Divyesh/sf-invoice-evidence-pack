@@ -132,6 +132,30 @@ test('renders exactly one h1 on every route and stable workspace state', async (
   await expectOnePageHeading(page, 'Page not found');
 });
 
+test('uses a semantic landing outline and plain informational labels', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Build a complete invoice evidence packet.' })).toBeVisible();
+
+  const headings = await page.locator('main h1, main h2, main h3').evaluateAll((elements) => (
+    elements.map((element) => ({ level: Number(element.tagName.slice(1)), text: element.textContent?.trim() }))
+  ));
+  expect(headings).toEqual([
+    { level: 1, text: 'Build a complete invoice evidence packet.' },
+    { level: 2, text: 'Prepare one packet in three steps.' },
+    { level: 3, text: 'Choose a checklist' },
+    { level: 3, text: 'Add the evidence' },
+    { level: 3, text: 'Export the packet' },
+    { level: 2, text: 'Storage and export privacy' },
+  ]);
+
+  const assurance = page.getByRole('region', { name: 'Storage and export privacy' });
+  await expect(assurance).toHaveAttribute('aria-labelledby', 'assurance-title');
+  await expect(assurance.getByRole('heading', { level: 2, name: 'Storage and export privacy' })).toBeVisible();
+  await expect(page.locator('.network[role="status"]')).toHaveText('Online');
+  await expect(page.locator('.hero-art figcaption')).toHaveText('One packet groups an invoice with its supporting evidence.');
+  await expect(page.getByText('Plate 01', { exact: true })).toHaveCount(0);
+});
+
 test('renders exactly one h1 while local storage is loading', async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperty(window, 'indexedDB', {

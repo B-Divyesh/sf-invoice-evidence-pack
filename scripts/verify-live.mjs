@@ -50,12 +50,27 @@ try {
   result.firstScreen = await page.evaluate(() => ({
     title: document.title,
     h1: [...document.querySelectorAll('h1')].map((heading) => heading.textContent?.trim()),
+    headingOutline: [...document.querySelectorAll('main h1, main h2, main h3')].map((heading) => `${heading.tagName}:${heading.textContent?.trim()}`),
     main: document.querySelectorAll('main').length,
     demoHref: document.querySelector('[href="/?demo=1"]')?.getAttribute('href'),
     primaryVisible: Boolean(document.querySelector('[href="/?demo=1"]')?.getBoundingClientRect().height),
+    assuranceName: document.querySelector('.assurance')?.getAttribute('aria-labelledby'),
+    networkStatus: document.querySelector('.network')?.textContent?.trim(),
+    heroCaption: document.querySelector('.hero-art figcaption')?.textContent?.trim(),
   }));
   assert(result.firstScreen.h1.length === 1 && result.firstScreen.h1[0] === 'Build a complete invoice evidence packet.', 'First screen h1 is wrong.');
   assert(result.firstScreen.demoHref === '/?demo=1' && result.firstScreen.primaryVisible, 'One-click query demo action is missing.');
+  assert(JSON.stringify(result.firstScreen.headingOutline) === JSON.stringify([
+    'H1:Build a complete invoice evidence packet.',
+    'H2:Prepare one packet in three steps.',
+    'H3:Choose a checklist',
+    'H3:Add the evidence',
+    'H3:Export the packet',
+    'H2:Storage and export privacy',
+  ]), 'The landing heading outline is not semantic.');
+  assert(result.firstScreen.assuranceName === 'assurance-title', 'The storage and export privacy section has no accessible name.');
+  assert(result.firstScreen.networkStatus === 'Online', 'The connected network state is not labelled Online.');
+  assert(result.firstScreen.heroCaption === 'One packet groups an invoice with its supporting evidence.', 'The hero caption contains decorative or incorrect copy.');
 
   const sourceLink = page.getByRole('link', { name: 'Source on GitHub (opens in a new tab)' });
   assert(await sourceLink.getAttribute('target') === '_blank', 'The source link does not disclose its new-tab behavior.');
